@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Optional;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
@@ -18,12 +17,11 @@ public class UsernameFilter extends HttpFilter {
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        Optional<String> username = Optional.ofNullable(req.getHeader("username"));
+        final String username = req.getHeader("username");
 
-        if(username.filter(v -> v.equals("admin")).isEmpty()){
-            setDenyResponse(res, username.orElse(""));
-        }
-        else {
+        if (!"admin".equals(username)) {
+            setDenyResponse(res, username == null ? "" : username);
+        } else {
             chain.doFilter(req, res);
         }
     }

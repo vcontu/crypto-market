@@ -17,8 +17,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RestrictedServletTest {
 
-    private final String testMessage = "Access Granted for user: admin";
-
     private RestrictedServlet testServlet;
 
     @Mock
@@ -41,6 +39,7 @@ class RestrictedServletTest {
     @Test
     void whenSendGetRequest_thenGrantAccessForUser() throws IOException {
         String testContentType = "text/plain";
+        String testMessage = "Access Granted for user: admin";
 
         testServlet.doGet(requestMock, responseMock);
 

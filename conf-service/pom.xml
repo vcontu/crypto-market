@@ -15,7 +15,6 @@
 
     <properties>
         <failOnMissingWebXml>false</failOnMissingWebXml>
-        <tomcat7-maven-plugin.version>2.2</tomcat7-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -43,15 +42,17 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+        </dependency>
     </dependencies>
-
     <build>
         <finalName>conf-service</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>check-domain-imports</id>
@@ -61,16 +62,29 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <restrictImports implementation="de.skuzzle.enforcer.restrictimports.rule.RestrictImports">
+                                <restrictImports
+                                        implementation="de.skuzzle.enforcer.restrictimports.rule.RestrictImports">
                                     <skip>false</skip>
+                                    <includeTestCode>true</includeTestCode>
                                     <failBuild>true</failBuild>
                                     <groups>
                                         <group>
-                                            <basePackages>
-                                                <basePackage>com.endava.internship.cryptomarket.confservice.**</basePackage>
-                                            </basePackages>
+                                            <basePackage>com.endava.internship.cryptomarket.confservice.**</basePackage>
                                             <exclusion>com.endava.internship.cryptomarket.confservice.api.**</exclusion>
-                                            <bannedImport>com.endava.internship.cryptomarket.confservice.api.**</bannedImport>
+                                            <bannedImport>com.endava.internship.cryptomarket.confservice.api.**
+                                            </bannedImport>
+                                        </group>
+                                    </groups>
+                                </restrictImports>
+                                <restrictImports
+                                        implementation="de.skuzzle.enforcer.restrictimports.rule.RestrictImports">
+                                    <skip>false</skip>
+                                    <includeTestCode>true</includeTestCode>
+                                    <failBuild>true</failBuild>
+                                    <groups>
+                                        <group>
+                                            <basePackage>com.endava.internship.cryptomarket.confservice.**</basePackage>
+                                            <bannedImport>org.junit.jupiter.api.Assertions</bannedImport>
                                         </group>
                                     </groups>
                                 </restrictImports>
@@ -78,6 +92,14 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven3-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
 
@@ -17,12 +16,11 @@ public class AcceptFilter extends HttpFilter {
 
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        Optional<String> acc = Optional.ofNullable(req.getHeader("Accept"));
+        String accept = req.getHeader("Accept");
 
-        if (acc.filter(v -> v.equals("text/plain")).isPresent() || acc.isEmpty()) {
+        if (accept == null || accept.equals("text/plain")) {
             chain.doFilter(req, res);
-        }
-        else{
+        } else {
             res.setStatus(SC_NOT_ACCEPTABLE);
         }
     }
