@@ -1,21 +1,20 @@
 package com.endava.internship.cryptomarket.confservice.api.servlets;
 
 import com.endava.internship.cryptomarket.confservice.service.HelloService;
-import com.endava.internship.cryptomarket.confservice.service.HelloServiceImpl;
-import jakarta.servlet.annotation.WebServlet;
+import com.endava.internship.cryptomarket.confservice.service.annotations.ServletAnnotation;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet("/hello")
+@ServletAnnotation(path = "/hello")
+@RequiredArgsConstructor
 public class HelloServlet extends HttpServlet {
 
-    @Setter
-    private HelloService helloService;
+    private final HelloService helloService;
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -23,10 +22,5 @@ public class HelloServlet extends HttpServlet {
 
         PrintWriter printWriter = resp.getWriter();
         printWriter.println(helloService.getResponse());
-    }
-
-    @Override
-    public void init() {
-        helloService = new HelloServiceImpl();
     }
 }

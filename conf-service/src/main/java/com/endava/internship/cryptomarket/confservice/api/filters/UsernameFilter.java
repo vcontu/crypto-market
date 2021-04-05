@@ -1,8 +1,8 @@
 package com.endava.internship.cryptomarket.confservice.api.filters;
 
+import com.endava.internship.cryptomarket.confservice.service.annotations.FilterAnnotation;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
-@WebFilter("/restricted")
+@FilterAnnotation(path = "/restricted")
 public class UsernameFilter extends HttpFilter {
 
     @Override

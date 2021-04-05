@@ -1,6 +1,6 @@
 package com.endava.internship.cryptomarket.confservice.api.servlets;
 
-import jakarta.servlet.annotation.WebServlet;
+import com.endava.internship.cryptomarket.confservice.service.annotations.ServletAnnotation;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet("/restricted")
+@ServletAnnotation(path = "/restricted")
 public class RestrictedServlet extends HttpServlet {
 
     @Override

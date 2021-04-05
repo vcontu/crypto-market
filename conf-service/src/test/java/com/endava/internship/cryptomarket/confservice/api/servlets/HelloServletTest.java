@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,6 +20,8 @@ import static org.mockito.Mockito.when;
 class HelloServletTest {
 
     private final String testMessage = "Hello World!";
+
+    @InjectMocks
     private HelloServlet testServlet;
 
     @Mock
@@ -35,13 +38,8 @@ class HelloServletTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        testServlet = new HelloServlet();
-
         when(serviceMock.getResponse()).thenReturn(testMessage);
         when(responseMock.getWriter()).thenReturn(writerMock);
-
-        testServlet.setHelloService(serviceMock);
-
     }
 
     @Test

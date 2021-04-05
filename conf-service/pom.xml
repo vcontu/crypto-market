@@ -46,6 +46,10 @@
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>conf-service</finalName>
@@ -70,9 +74,11 @@
                                     <groups>
                                         <group>
                                             <basePackage>com.endava.internship.cryptomarket.confservice.**</basePackage>
-                                            <exclusion>com.endava.internship.cryptomarket.confservice.api.**</exclusion>
-                                            <bannedImport>com.endava.internship.cryptomarket.confservice.api.**
-                                            </bannedImport>
+                                            <exclusions>
+                                                <exclusion>com.endava.internship.cryptomarket.confservice.api.**</exclusion>
+                                                <exclusion>com.endava.internship.cryptomarket.confservice.application.**</exclusion>
+                                            </exclusions>
+                                            <bannedImport>com.endava.internship.cryptomarket.confservice.api.**</bannedImport>
                                         </group>
                                     </groups>
                                 </restrictImports>
