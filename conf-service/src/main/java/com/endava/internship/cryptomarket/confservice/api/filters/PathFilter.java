@@ -11,19 +11,19 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@FilterComponent(path = "/*", priority = 1)
-public class AcceptFilter extends HttpFilter {
+@FilterComponent(path = "/users/*", priority = 2)
+public class PathFilter extends HttpFilter {
 
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        String accept = req.getHeader("Content-Type");
-
-        if ((req.getMethod().equals("POST") || req.getMethod().equals("PUT"))
-                && !"application/json; charset: UTF-8".equals(accept)) {
-            throw new ApplicationException(ExceptionResponses.NOT_ACCEPTABLE_CONTENT, null);
+        String[] path = req.getRequestURI().split("/");
+        if (req.getMethod().equals("PUT") && path.length != 4
+                || req.getMethod().equals("DELETE") && path.length != 4
+                || req.getMethod().equals("POST") && path.length != 3
+                || req.getMethod().equals("GET") && path.length > 4) {
+            throw new ApplicationException(ExceptionResponses.NONEXISTENT_ENDPOINT, null);
         }
 
         chain.doFilter(req, res);
     }
-
 }

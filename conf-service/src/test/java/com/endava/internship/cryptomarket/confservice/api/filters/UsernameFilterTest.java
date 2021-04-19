@@ -1,77 +1,167 @@
 package com.endava.internship.cryptomarket.confservice.api.filters;
 
+import com.endava.internship.cryptomarket.confservice.business.UserService;
+import com.endava.internship.cryptomarket.confservice.business.exceptions.ApplicationException;
+import com.endava.internship.cryptomarket.confservice.data.model.Roles;
+import com.endava.internship.cryptomarket.confservice.data.model.Status;
+import com.endava.internship.cryptomarket.confservice.data.model.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Optional;
 
-import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static com.endava.internship.cryptomarket.confservice.business.exceptions.ExceptionResponses.*;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UsernameFilterTest {
-
-    private UsernameFilter testFilter;
+public class UsernameFilterTest {
 
     @Mock
-    private HttpServletRequest requestMock;
+    private HttpServletRequest request;
 
     @Mock
-    private HttpServletResponse responseMock;
+    private HttpServletResponse response;
 
     @Mock
-    private FilterChain chainMock;
+    private FilterChain chain;
 
     @Mock
-    private PrintWriter writerMock;
+    private UserService userService;
 
-    @BeforeEach
-    void setUp() {
-        testFilter = new UsernameFilter();
+    @Mock
+    private User user;
+
+    @InjectMocks
+    private UsernameFilter usernameFilter;
+
+    @Test
+    void whenRequestWithNoUsername_thenThrowUserNotAuthorizedException() {
+        when(request.getHeader("Requester-Username")).thenReturn(null);
+
+        assertThatThrownBy(() -> usernameFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(AUTHENTICATION_FAILURE, null));
+
+        verify(request).getHeader("Requester-Username");
     }
 
     @Test
-    void whenFilterUsernameHeaderWithUnauthorisedUser_thenReturn403ForbiddenAndPrintMessage() throws IOException, ServletException {
-        String expectedMessage = "Access Denied for user: userunknown";
-        when(requestMock.getHeader("username")).thenReturn("userunknown");
-        when(responseMock.getWriter()).thenReturn(writerMock);
+    void whenRequestWithNonexistentUsername_thenThrowUserNotAuthorizedException() {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.empty());
 
-        testFilter.doFilter(requestMock, responseMock, chainMock);
+        assertThatThrownBy(() -> usernameFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(NONEXISTENT_USER_NOT_AUTHORIZED, "admin"));
 
-        verify(responseMock).setContentType("text/plain");
-        verify(responseMock).setStatus(SC_FORBIDDEN);
-        verify(writerMock).println(expectedMessage);
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
     }
 
     @Test
-    void whenFilterEmptyUsernameHeader_thenReturn403ForbiddenAndPrintMessage() throws IOException, ServletException {
-        String expectedMessage = "Access Denied for user: ";
-        when(requestMock.getHeader("username")).thenReturn(null);
-        when(responseMock.getWriter()).thenReturn(writerMock);
+    void whenRequestWithUserRoleCLIENT_thenThrowUserNotAuthorizedException() {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.of(user));
+        when(user.getRole()).thenReturn(Roles.CLIENT);
 
-        testFilter.doFilter(requestMock, responseMock, chainMock);
+        assertThatThrownBy(() -> usernameFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(NONEXISTENT_USER_NOT_AUTHORIZED, "admin"));
 
-        verify(responseMock).setContentType("text/plain");
-        verify(responseMock).setStatus(SC_FORBIDDEN);
-        verify(writerMock).println(expectedMessage);
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
+        verify(user).getRole();
     }
 
     @Test
-    void whenFilterUsernameHeaderWithAuthorisedUser_thenDoFilterFurther() throws IOException, ServletException {
-        when(requestMock.getHeader("username")).thenReturn("admin");
+    void whenRequestWithUserStatusINACTV_thenThrowUserNotAuthorizedException() {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.of(user));
+        when(user.getRole()).thenReturn(Roles.OPERAT);
+        when(user.getStatus()).thenReturn(Status.INACTV);
 
-        testFilter.doFilter(requestMock, responseMock, chainMock);
+        assertThatThrownBy(() -> usernameFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(NONEXISTENT_USER_NOT_AUTHORIZED, "admin"));
 
-        verify(chainMock).doFilter(requestMock, responseMock);
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
+        verify(user).getRole();
+        verify(user).getStatus();
+    }
+
+    @Test
+    void whenRequestWithUserStatusSUSPND_thenThrowUserAccessForbiddenException() {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.of(user));
+        when(user.getRole()).thenReturn(Roles.OPERAT);
+        when(user.getStatus()).thenReturn(Status.SUSPND);
+
+        assertThatThrownBy(() -> usernameFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(USER_SUSPND_ACCESS_FORBIDDEN, "admin"));
+
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
+        verify(user).getRole();
+        verify(user, times(2)).getStatus();
+    }
+
+    @Test
+    void whenRequestWithUserRoleOPERATAndMethodDelete_thenThrowUserAccessForbiddenException() {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.of(user));
+        when(user.getRole()).thenReturn(Roles.OPERAT);
+        when(user.getStatus()).thenReturn(Status.ACTIVE);
+        when(request.getMethod()).thenReturn("DELETE");
+
+        assertThatThrownBy(() -> usernameFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(USER_NOT_ALLOWED_REMOVE, "admin"));
+
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
+        verify(user, times(2)).getRole();
+        verify(user, times(2)).getStatus();
+        verify(request).getMethod();
+    }
+
+    @Test
+    void whenRequestWithUserOPERATAndNoDeleteMethod_thenNoExceptionThrown() throws ServletException, IOException {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.of(user));
+        when(user.getRole()).thenReturn(Roles.OPERAT);
+        when(user.getStatus()).thenReturn(Status.ACTIVE);
+        when(request.getMethod()).thenReturn("PUT");
+
+        assertThatNoException().isThrownBy(() -> usernameFilter.doFilter(request, response, chain));
+
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
+        verify(user, times(2)).getRole();
+        verify(user, times(2)).getStatus();
+        verify(request).getMethod();
+        verify(chain).doFilter(request, response);
+    }
+
+    @Test
+    void whenRequestWithUserADMIN_thenNoExceptionThrown() throws ServletException, IOException {
+        when(request.getHeader("Requester-Username")).thenReturn("admin");
+        when(userService.getRequester("admin")).thenReturn(Optional.of(user));
+        when(user.getRole()).thenReturn(Roles.ADMIN);
+        when(user.getStatus()).thenReturn(Status.ACTIVE);
+
+        assertThatNoException().isThrownBy(() -> usernameFilter.doFilter(request, response, chain));
+
+        verify(request).getHeader("Requester-Username");
+        verify(userService).getRequester("admin");
+        verify(user, times(2)).getRole();
+        verify(user, times(2)).getStatus();
+        verify(chain).doFilter(request, response);
     }
 
 }

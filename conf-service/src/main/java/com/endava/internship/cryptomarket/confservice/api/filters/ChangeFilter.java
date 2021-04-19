@@ -11,19 +11,21 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@FilterComponent(path = "/*", priority = 1)
-public class AcceptFilter extends HttpFilter {
+@FilterComponent(path = "/*", priority = 4)
+public class ChangeFilter extends HttpFilter {
 
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        String accept = req.getHeader("Content-Type");
-
-        if ((req.getMethod().equals("POST") || req.getMethod().equals("PUT"))
-                && !"application/json; charset: UTF-8".equals(accept)) {
-            throw new ApplicationException(ExceptionResponses.NOT_ACCEPTABLE_CONTENT, null);
+        final String[] path = req.getRequestURI().split("/");
+        String usernameToChange = "";
+        if (path.length == 4) {
+            usernameToChange = path[3];
+        }
+        if (req.getMethod().equals("PUT")
+                && req.getHeader("Requester-Username").equals(usernameToChange)) {
+            throw new ApplicationException(ExceptionResponses.SELF_AMEND, usernameToChange);
         }
 
         chain.doFilter(req, res);
     }
-
 }

@@ -1,37 +1,56 @@
 package com.endava.internship.cryptomarket.confservice.api.filters;
 
-import com.endava.internship.cryptomarket.confservice.service.annotations.FilterAnnotation;
+import com.endava.internship.cryptomarket.confservice.api.annotations.FilterComponent;
+import com.endava.internship.cryptomarket.confservice.business.UserService;
+import com.endava.internship.cryptomarket.confservice.business.exceptions.ApplicationException;
+import com.endava.internship.cryptomarket.confservice.data.model.Roles;
+import com.endava.internship.cryptomarket.confservice.data.model.Status;
+import com.endava.internship.cryptomarket.confservice.data.model.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Optional;
 
-import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static com.endava.internship.cryptomarket.confservice.business.exceptions.ExceptionResponses.*;
+import static java.util.Objects.isNull;
 
-@FilterAnnotation(path = "/restricted")
+@FilterComponent(path = "/*", priority = 3)
+@RequiredArgsConstructor
 public class UsernameFilter extends HttpFilter {
+
+    private final UserService userService;
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        final String username = req.getHeader("username");
+        final String username = req.getHeader("Requester-Username");
 
-        if (!"admin".equals(username)) {
-            setDenyResponse(res, username == null ? "" : username);
-        } else {
-            chain.doFilter(req, res);
+        if (isNull(username)) {
+            throw new ApplicationException(AUTHENTICATION_FAILURE, null);
         }
-    }
 
-    private void setDenyResponse(HttpServletResponse res, String username) throws IOException {
-        res.setContentType("text/plain");
-        res.setStatus(SC_FORBIDDEN);
+        Optional<User> user = userService.getRequester(username);
 
-        PrintWriter writer = res.getWriter();
-        writer.println("Access Denied for user: " + username);
+        if (user.isEmpty()) {
+            throw new ApplicationException(NONEXISTENT_USER_NOT_AUTHORIZED, username);
+        }
+
+        if (user.get().getRole() == Roles.CLIENT || user.get().getStatus() == Status.INACTV) {
+            throw new ApplicationException(NONEXISTENT_USER_NOT_AUTHORIZED, username);
+        }
+
+        if (user.get().getStatus() == Status.SUSPND) {
+            throw new ApplicationException(USER_SUSPND_ACCESS_FORBIDDEN, username);
+        }
+        if (user.get().getRole() == Roles.OPERAT && req.getMethod().equals("DELETE")) {
+            throw new ApplicationException(USER_NOT_ALLOWED_REMOVE, username);
+        }
+
+        chain.doFilter(req, res);
     }
 
 }

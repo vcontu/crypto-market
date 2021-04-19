@@ -1,0 +1,347 @@
+openapi: "3.0.2"
+info:
+  title: Conf-service App
+  description: CryptoMarket Application API Documentation
+  version: "1.0"
+servers:
+  - url: http://localhost:8080
+    description: localhost server
+security:
+  - ApiKeyAuth: []
+paths:
+  /users:
+    get:
+      tags:
+        - User Listing
+      summary: List all users
+      operationId: ListAllUsers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetUser'
+              examples:
+                first:
+                  $ref: '#/components/examples/UserListing'
+        '401':
+          $ref: '#/components/responses/AuthenticationFailed'
+        '403':
+          $ref: '#/components/responses/AuthorizationFailed'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - User Management
+      summary: Create new user
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUser'
+      responses:
+        '201':
+          description: User Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationFailed'
+        '403':
+          $ref: '#/components/responses/AuthorizationFailed'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  '/users/{username}':
+    get:
+      tags:
+        - User Listing
+      summary: Get user by username
+      operationId: getUserDetails
+      parameters:
+        - name: username
+          in: path
+          description: username
+          required: true
+          schema:
+            $ref: '#/components/schemas/Username'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationFailed'
+        '403':
+          $ref: '#/components/responses/AuthorizationFailed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - User Management
+      summary: Amend user by username
+      operationId: updateUsingPUT
+      parameters:
+        - name: username
+          in: path
+          description: user login
+          required: true
+          schema:
+            $ref: '#/components/schemas/Username'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutUser'
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationFailed'
+        '403':
+          $ref: '#/components/responses/AuthorizationFailed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - User Management
+      summary: Delete user by username
+      operationId: deleteUsingDELETE
+      parameters:
+        - name: username
+          in: path
+          description: user login
+          required: true
+          schema:
+            $ref: '#/components/schemas/Username'
+      responses:
+        '204':
+          description: No content
+        '401':
+          $ref: '#/components/responses/AuthenticationFailed'
+        '403':
+          $ref: '#/components/responses/AuthorizationFailed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Requester-Username
+  responses:
+    BadRequest:
+      description: 400 Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiStatus'
+          example:
+            status: 400 Bad Request
+            message: Request object validation failure.
+            errorCode: 5400
+    AuthenticationFailed:
+      description: 401 Authentication Failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiStatus'
+          example:
+            status: 401 Unauthorized
+            message: 'Requester johndoe does not exist.'
+            errorCode: 1000
+    AuthorizationFailed:
+      description: 403 Forbidden Access
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiStatus'
+          example:
+            status: 403 Forbidden
+            message: 'Requester johndoe is currently suspended. Please, contact the administrator.'
+            errorCode: 2100
+    NotFound:
+      description: 404 Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiStatus'
+          example:
+            status: 404 Not Found
+            message: 'User johndoe does not exist'
+            errorCode: 4100
+    InternalServerError:
+      description: 500 Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiStatus'
+          example:
+            status: 500 Internal Server Error
+            message: 'Unknown internal error'
+            errorCode: 9999
+  schemas:
+    GetUser:
+      title: GetUser
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 4
+          maxLength: 32
+          pattern: ^(?=.{4,32}$)(?![_])(?!.*[_]{2})[a-z0-9_]+(?<![_])$
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - OPERAT
+            - CLIENT
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - SUSPND
+            - INACTV
+        createdOn:
+          type: string
+          format: date-time
+        updatedOn:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+      example:
+        username: jdoe
+        email: john.doe@gmail.com
+        role: CLIENT
+        status: ACTIVE
+        createdOn: "2018-11-13T20:20:39+00:00"
+        updatedOn: "2020-01-05T15:20:07+00:00"
+        updatedBy: admin
+      additionalProperties: false
+
+    PostUser:
+      title: PostUser
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 4
+          maxLength: 32
+          pattern: ^(?=.{4,32}$)(?![_])(?!.*[_]{2})[a-z0-9_]+(?<![_])$
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - OPERAT
+            - CLIENT
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - SUSPND
+            - INACTV
+      required:
+        - username
+        - email
+        - role
+        - status
+      example:
+        username: jdoe
+        email: john.doe@gmail.com
+        role: CLIENT
+        status: ACTIVE
+      additionalProperties: false
+
+    PutUser:
+      title: PutUser
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 4
+          maxLength: 32
+          pattern: ^(?=.{4,32}$)(?![_])(?!.*[_]{2})[a-z0-9_]+(?<![_])$
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - OPERAT
+            - CLIENT
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - SUSPND
+            - INACTV
+      required:
+        - username
+      example:
+        username: jdoe
+        email: john.doe@gmail.com
+        role: CLIENT
+        status: ACTIVE
+      additionalProperties: false
+
+    Username:
+      type: string
+      example: vcontu
+
+    ApiStatus:
+      title: Api Error Status
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        errorCode:
+          type: number
+      additionalProperties: false
+
+
+  examples:
+    UserListing:
+      summary: "list of users"
+      value: |
+        [
+          {
+            "username": "luke",
+            "email": "luke@starwars.org",
+            "role": "OPERAT",
+            "status": "ACTIVE"
+          },
+          {
+            "username": "ajoe",
+            "email": "mail@users.net",
+            "role": "CLIENT",
+            "status": "SUSPND"
+          }
+        ]

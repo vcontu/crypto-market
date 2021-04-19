@@ -10,6 +10,7 @@
     <version>0.1-SNAPSHOT</version>
     <modules>
         <module>conf-service</module>
+        <module>api-contracts</module>
     </modules>
 
 
@@ -30,6 +31,7 @@
         <cargo-maven3-plugin.version>1.9.3</cargo-maven3-plugin.version>
         <rest-assured.version>4.3.3</rest-assured.version>
         <spring-context.version>5.3.4</spring-context.version>
+        <jackson-databind.version>2.12.1</jackson-databind.version>
     </properties>
 
 
@@ -80,6 +82,16 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
                 <version>${spring-context.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>${jackson-databind.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -161,6 +173,9 @@
                         <container>
                             <containerId>tomcat10x</containerId>
                             <type>embedded</type>
+                            <systemProperties>
+                                <spring.profiles.active>test</spring.profiles.active>
+                            </systemProperties>
                         </container>
                         <configuration>
                             <properties>

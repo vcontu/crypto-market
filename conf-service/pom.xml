@@ -50,6 +50,14 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>conf-service</finalName>
@@ -75,10 +83,14 @@
                                         <group>
                                             <basePackage>com.endava.internship.cryptomarket.confservice.**</basePackage>
                                             <exclusions>
-                                                <exclusion>com.endava.internship.cryptomarket.confservice.api.**</exclusion>
-                                                <exclusion>com.endava.internship.cryptomarket.confservice.application.**</exclusion>
+                                                <exclusion>com.endava.internship.cryptomarket.confservice.api.**
+                                                </exclusion>
+                                                <exclusion>
+                                                    com.endava.internship.cryptomarket.confservice.application.**
+                                                </exclusion>
                                             </exclusions>
-                                            <bannedImport>com.endava.internship.cryptomarket.confservice.api.**</bannedImport>
+                                            <bannedImport>com.endava.internship.cryptomarket.confservice.api.**
+                                            </bannedImport>
                                         </group>
                                     </groups>
                                 </restrictImports>

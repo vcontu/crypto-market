@@ -1,4 +1,4 @@
-package com.endava.internship.cryptomarket.confservice.service.annotations;
+package com.endava.internship.cryptomarket.confservice.api.annotations;
 
 import org.springframework.stereotype.Component;
 
@@ -11,7 +11,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(TYPE)
 @Retention(RUNTIME)
 @Component
-public @interface FilterAnnotation {
+public @interface ServletComponent {
 
     String path();
 

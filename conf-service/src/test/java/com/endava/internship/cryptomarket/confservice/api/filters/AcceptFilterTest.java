@@ -1,8 +1,9 @@
 package com.endava.internship.cryptomarket.confservice.api.filters;
 
+import com.endava.internship.cryptomarket.confservice.business.exceptions.ApplicationException;
+import com.endava.internship.cryptomarket.confservice.business.exceptions.ExceptionResponses;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,55 +14,90 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 
-import static jakarta.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AcceptFilterTest {
-
-    private HttpFilter testFilter;
+class AcceptFilterTest {
 
     @Mock
-    private HttpServletRequest requestMock;
+    private HttpServletRequest request;
 
     @Mock
-    private HttpServletResponse responseMock;
+    private HttpServletResponse response;
 
     @Mock
-    private FilterChain chainMock;
+    private FilterChain chain;
+
+    private AcceptFilter acceptFilter;
 
     @BeforeEach
     void setUp() {
-        testFilter = new AcceptFilter();
+        acceptFilter = new AcceptFilter();
     }
 
     @Test
-    void whenFilterAcceptHeaderWithNonTextPlain_thenReturn406NonAcceptable() throws IOException, ServletException {
-        int expectedStatus = SC_NOT_ACCEPTABLE;
-        when(requestMock.getHeader("Accept")).thenReturn("text/html");
+    void whenFilterPostRequestWithNoJsonContentType_thenThrowNotAcceptableValueException() {
+        when(request.getHeader("Content-Type"))
+                .thenReturn("application/random");
+        when(request.getMethod()).thenReturn("POST");
 
-        testFilter.doFilter(requestMock, responseMock, chainMock);
-
-        verify(responseMock).setStatus(expectedStatus);
+        assertThatThrownBy(() -> acceptFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(ExceptionResponses.NOT_ACCEPTABLE_CONTENT, null));
+        verify(request).getMethod();
+        verify(request).getHeader("Content-Type");
     }
 
     @Test
-    void whenFilterAcceptHeaderWithTextPlain_thenDoFilterFurther() throws IOException, ServletException {
-        when(requestMock.getHeader("Accept")).thenReturn("text/plain");
+    void whenFilterPutRequestWithNoJsonContentType_thenThrowNotAcceptableValueException() {
+        when(request.getHeader("Content-Type"))
+                .thenReturn("application/random");
+        when(request.getMethod()).thenReturn("PUT");
 
-        testFilter.doFilter(requestMock, responseMock, chainMock);
-
-        verify(chainMock).doFilter(requestMock, responseMock);
+        assertThatThrownBy(() -> acceptFilter.doFilter(request, response, chain))
+                .isEqualTo(new ApplicationException(ExceptionResponses.NOT_ACCEPTABLE_CONTENT, null));
+        verify(request, times(2)).getMethod();
+        verify(request).getHeader("Content-Type");
     }
 
     @Test
-    void whenFilterEmptyAcceptHeader_thenDoFilterFurther() throws IOException, ServletException {
-        when(requestMock.getHeader("Accept")).thenReturn(null);
+    void whenFilterGetRequestWithNoJsonContentType_thenDoFilter() throws ServletException, IOException {
+        when(request.getHeader("Content-Type"))
+                .thenReturn("application/random");
+        when(request.getMethod()).thenReturn("GET");
 
-        testFilter.doFilter(requestMock, responseMock, chainMock);
+        assertThatNoException().isThrownBy(() -> acceptFilter.doFilter(request, response, chain));
 
-        verify(chainMock).doFilter(requestMock, responseMock);
+        verify(request, times(2)).getMethod();
+        verify(request).getHeader("Content-Type");
+        verify(chain).doFilter(request, response);
+    }
+
+    @Test
+    void whenFilterPostRequestWithJsonContentType_thenDoFilter() throws ServletException, IOException {
+        when(request.getHeader("Content-Type"))
+                .thenReturn("application/json; charset: UTF-8");
+        when(request.getMethod()).thenReturn("POST");
+
+        assertThatNoException().isThrownBy(() -> acceptFilter.doFilter(request, response, chain));
+
+        verify(request).getMethod();
+        verify(request).getHeader("Content-Type");
+        verify(chain).doFilter(request, response);
+    }
+
+    @Test
+    void whenFilterPutRequestWithJsonContentType_thenDoFilter() throws ServletException, IOException {
+        when(request.getHeader("Content-Type"))
+                .thenReturn("application/json; charset: UTF-8");
+        when(request.getMethod()).thenReturn("PUT");
+
+        assertThatNoException().isThrownBy(() -> acceptFilter.doFilter(request, response, chain));
+
+        verify(request, times(2)).getMethod();
+        verify(request).getHeader("Content-Type");
+        verify(chain).doFilter(request, response);
     }
 
 }
