@@ -3,14 +3,14 @@ package com.endava.upskill.confservice.api.servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.endava.upskill.confservice.api.CustomHeaders;
+import com.endava.upskill.confservice.api.annotations.ServletComponent;
 
-@WebServlet("/restricted")
+@ServletComponent(path = "/restricted")
 public class RestrictedServlet extends HttpServlet {
 
     @Override

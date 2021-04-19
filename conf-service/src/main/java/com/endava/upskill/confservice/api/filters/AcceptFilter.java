@@ -6,14 +6,15 @@ import static java.util.Objects.isNull;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
 
-@WebFilter("/*")
+import com.endava.upskill.confservice.api.annotations.FilterComponent;
+
+@FilterComponent(path = "/*")
 public class AcceptFilter extends HttpFilter {
 
     @Override

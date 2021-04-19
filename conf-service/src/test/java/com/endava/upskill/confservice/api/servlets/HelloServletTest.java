@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,7 +20,8 @@ import com.endava.upskill.confservice.service.HelloService;
 @ExtendWith(MockitoExtension.class)
 class HelloServletTest {
 
-    private final HelloServlet testServlet = new HelloServlet();
+    @InjectMocks
+    private HelloServlet testServlet;
 
     @Mock
     private HttpServletRequest requestMock;
@@ -38,7 +40,6 @@ class HelloServletTest {
         final String TEST_MESSAGE = "Hello World!";
         when(serviceMock.getResponse()).thenReturn(TEST_MESSAGE);
         when(responseMock.getWriter()).thenReturn(writerMock);
-        testServlet.setHelloService(serviceMock);
 
         String testContentType = "text/plain";
 

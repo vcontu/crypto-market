@@ -16,10 +16,12 @@ public class ArchUnitTest {
 
     private static final String API_PACKAGES = "com.endava.upskill.confservice.api..";
 
+    private static final String SERVICE_PACKAGES = "com.endava.upskill.confservice.service..";
+
     @ArchTest
     public static final ArchRule LAYER_DEPENDENCIES_ARE_RESPECTED = layeredArchitecture()
             .layer(API).definedBy(API_PACKAGES)
-            .layer(SERVICE).definedBy("com.endava.upskill.confservice.service..")
+            .layer(SERVICE).definedBy(SERVICE_PACKAGES)
             .whereLayer(API).mayNotBeAccessedByAnyLayer()
             .whereLayer(SERVICE).mayOnlyBeAccessedByLayers(API);
 

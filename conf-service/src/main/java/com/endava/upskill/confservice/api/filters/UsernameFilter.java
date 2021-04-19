@@ -7,7 +7,6 @@ import static java.util.Objects.nonNull;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,8 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 import com.endava.upskill.confservice.api.CustomHeaders;
+import com.endava.upskill.confservice.api.annotations.FilterComponent;
 
-@WebFilter("/restricted")
+@FilterComponent(path = "/restricted")
 public class UsernameFilter extends HttpFilter {
 
     @Override
