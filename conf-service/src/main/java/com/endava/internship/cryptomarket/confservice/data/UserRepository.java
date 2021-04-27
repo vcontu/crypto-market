@@ -15,5 +15,5 @@ public interface UserRepository {
 
     boolean delete(String username);
 
-
+    boolean exists(User user);
 }

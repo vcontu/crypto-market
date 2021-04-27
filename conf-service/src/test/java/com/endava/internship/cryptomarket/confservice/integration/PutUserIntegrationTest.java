@@ -1,6 +1,6 @@
 package com.endava.internship.cryptomarket.confservice.integration;
 
-import com.endava.internship.cryptomarket.confservice.business.model.UserDTO;
+import com.endava.internship.cryptomarket.confservice.business.model.UserDto;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import org.junit.jupiter.api.Test;
@@ -16,12 +16,12 @@ class PutUserIntegrationTest {
 
     private final String url = "http://localhost:8080/conf-service/users/operat1";
 
-    private final UserDTO newUser = new UserDTO("operat1", "newOperat@gmail.com", OPERAT,
-            ACTIVE, null,null, null);
+    private final UserDto newUser = new UserDto("operat1", "newOperat@gmail.com", OPERAT,
+            ACTIVE, null, null, null);
 
     @Test
     void whenPutUser_thenRespondAccordingToAPI() {
-        final Headers putHeaders = new Headers(new Header("Content-Type", "application/json; charset: UTF-8"),
+        final Headers putHeaders = new Headers(new Header("Content-Type", "application/json"),
                 new Header("Requester-Username", "admin"));
         defaultParser = JSON;
 

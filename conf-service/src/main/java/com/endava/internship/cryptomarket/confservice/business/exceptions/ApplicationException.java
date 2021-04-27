@@ -12,4 +12,5 @@ public class ApplicationException extends RuntimeException {
     private final ExceptionResponses applicationError;
 
     private final String messageParameter;
+
 }

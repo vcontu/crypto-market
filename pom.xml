@@ -24,14 +24,15 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <assertj-core.version>3.19.0</assertj-core.version>
         <mockito-core.version>3.8.0</mockito-core.version>
-        <jakarta.servlet-api.version>5.0.0</jakarta.servlet-api.version>
         <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
         <mockito-junit-jupiter.version>2.23.0</mockito-junit-jupiter.version>
         <restrict-imports-enforcer-rule.version>1.1.0</restrict-imports-enforcer-rule.version>
         <cargo-maven3-plugin.version>1.9.3</cargo-maven3-plugin.version>
         <rest-assured.version>4.3.3</rest-assured.version>
-        <spring-context.version>5.3.4</spring-context.version>
+        <spring-webmvc.version>5.3.4</spring-webmvc.version>
         <jackson-databind.version>2.12.1</jackson-databind.version>
+        <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
+        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     </properties>
 
 
@@ -44,9 +45,10 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>jakarta.servlet</groupId>
-                <artifactId>jakarta.servlet-api</artifactId>
-                <version>${jakarta.servlet-api.version}</version>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet-api.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -80,8 +82,8 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring-context.version}</version>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring-webmvc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -92,6 +94,11 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson-databind.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -171,7 +178,7 @@
                     <version>${cargo-maven3-plugin.version}</version>
                     <configuration>
                         <container>
-                            <containerId>tomcat10x</containerId>
+                            <containerId>tomcat9x</containerId>
                             <type>embedded</type>
                             <systemProperties>
                                 <spring.profiles.active>test</spring.profiles.active>

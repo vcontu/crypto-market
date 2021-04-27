@@ -107,4 +107,18 @@ class UsersInMemRepositoryTest {
         assertThat(userRepository.delete(username)).isFalse();
     }
 
+    @Test
+    void whenUserExistsNonExistentUser_thenReturnFalse(){
+        User user = User.builder().username("operat5").build();
+
+        assertThat(userRepository.exists(user)).isFalse();
+    }
+
+    @Test
+    void whenUserExistsExistentUser_thenReturnTrue(){
+        User user = User.builder().username("operat1").build();
+
+        assertThat(userRepository.exists(user)).isTrue();
+    }
+
 }

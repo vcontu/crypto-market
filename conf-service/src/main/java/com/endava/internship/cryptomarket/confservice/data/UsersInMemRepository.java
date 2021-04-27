@@ -5,7 +5,10 @@ import com.endava.internship.cryptomarket.confservice.data.model.Status;
 import com.endava.internship.cryptomarket.confservice.data.model.User;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.time.LocalDateTime.now;
@@ -37,9 +40,7 @@ public class UsersInMemRepository implements UserRepository {
         if (users.containsKey(newUser.getUsername())) {
             return false;
         }
-        synchronized (this) {
-            users.put(newUser.getUsername(), newUser);
-        }
+        users.put(newUser.getUsername(), newUser);
         return true;
     }
 
@@ -48,10 +49,12 @@ public class UsersInMemRepository implements UserRepository {
         if (!users.containsKey(username)) {
             return false;
         }
-        synchronized (this) {
-            users.remove(username);
-        }
+        users.remove(username);
         return true;
     }
 
+    @Override
+    public boolean exists(User user) {
+        return users.containsKey(user.getUsername());
+    }
 }

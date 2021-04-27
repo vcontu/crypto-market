@@ -1,20 +1,25 @@
 package com.endava.internship.cryptomarket.confservice.business.exceptions;
 
-import com.endava.internship.cryptomarket.confservice.business.model.ApiError;
-import lombok.Getter;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_ACCEPTABLE;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
-import static jakarta.servlet.http.HttpServletResponse.*;
+import com.endava.internship.cryptomarket.confservice.business.model.ApiError;
+
+import lombok.Getter;
 
 public enum ExceptionResponses {
     NONEXISTENT_USER_NOT_AUTHORIZED(SC_UNAUTHORIZED, "Unauthorized", "Requester %s does not exist.", 1000),
     AUTHENTICATION_FAILURE(SC_UNAUTHORIZED, "Unauthorized", "Authentication failure. Please provide header 'Requester-Username'.", 1000),
-    NONEXISTENT_ENDPOINT(SC_NOT_FOUND, "Not found", "Endpoint dose not exist.", 1201),
     USER_SUSPND_ACCESS_FORBIDDEN(SC_FORBIDDEN, "Forbidden", "Requester %s is currently suspended. Please contact the administrator.", 2100),
     INACTIV_USER_AMEND(SC_BAD_REQUEST, "Bad request", "User %s is inactive and cannot be amended.", 2200),
     INACTIV_USER_CREATE(SC_BAD_REQUEST, "Bad request", "Unable to create user %s with initial status INACTV.", 2300),
     USER_NOT_ALLOWED_REMOVE(SC_FORBIDDEN, "Forbidden", "Requester %s is not allowed to remove users.", 3100),
-    ADMIN_NOT_ALLOWED_CHANGE_ADMIN(SC_FORBIDDEN, "Forbidden", "Requester %s is not allowed to create other administrators.", 3200),
-    OPERAT_NOT_ALLOWED_CHANGE_ADMIN_OPERAT(SC_FORBIDDEN, "Forbidden", "Requester %s is not allowed to create other operators or administrators.", 3300),
+    ADMIN_NOT_ALLOWED_CREATE_ADMIN(SC_FORBIDDEN, "Forbidden", "Requester %s is not allowed to create other administrators.", 3200),
+    OPERAT_NOT_ALLOWED_CREATE_ADMIN_OPERAT(SC_FORBIDDEN, "Forbidden", "Requester %s is not allowed to create other operators or administrators.", 3300),
     USER_NOT_FOUND(SC_NOT_FOUND, "Not found", "User %s does not exist.", 4100),
     SELF_AMEND(SC_FORBIDDEN, "Forbidden", "Requester %s is not allowed to amend itself.", 4200),
     DIFFERENT_USERNAME(SC_BAD_REQUEST, "Bad request", "Username must be the same URL path variable and request object property username.", 4300),
@@ -44,5 +49,9 @@ public enum ExceptionResponses {
         final String status = httpStatus + " " + statusSuffix;
         final String message = String.format(messageTemplate, messageParam);
         return new ApiError(status, message, errorCode);
+    }
+
+    public ApiError buildApiError() {
+        return buildApiError(null);
     }
 }
