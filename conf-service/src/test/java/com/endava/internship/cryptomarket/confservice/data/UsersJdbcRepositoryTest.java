@@ -20,10 +20,11 @@ import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.endava.internship.cryptomarket.confservice.data.mapper.SqlArgumentsMapper;
+import com.endava.internship.cryptomarket.confservice.data.mapper.UserRowMapper;
 import com.endava.internship.cryptomarket.confservice.data.model.Roles;
 import com.endava.internship.cryptomarket.confservice.data.model.Status;
 import com.endava.internship.cryptomarket.confservice.data.model.User;
@@ -61,7 +62,7 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-        createDatasource(new SqlArgumentsMapper());
+        createDatasource(new UserRowMapper());
 
         databaseTester = new JdbcDatabaseTester(
                 "oracle.jdbc.driver.OracleDriver",
@@ -214,7 +215,7 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
         assertThat(userJdbcRepository.exists(nonexistentUser)).isFalse();
     }
 
-    private void createDatasource(SqlArgumentsMapper mapper) {
+    private void createDatasource(UserRowMapper mapper) {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("oracle.jdbc.driver.OracleDriver");
         config.setJdbcUrl(URL);
@@ -222,7 +223,7 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
         config.setPassword(PASSWORD);
         config.setMaximumPoolSize(10);
         dataSource = new HikariDataSource(config);
-        userJdbcRepository = new UserJdbcRepository(dataSource, mapper);
+        userJdbcRepository = new UserJdbcRepository(new NamedParameterJdbcTemplate(dataSource), mapper);
     }
 
     private void clearTable() throws Exception {

@@ -1,76 +1,44 @@
 package com.endava.internship.cryptomarket.confservice.data;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import javax.sql.DataSource;
+import static java.util.stream.Collectors.toList;
 
-import com.endava.internship.cryptomarket.confservice.data.dbutils.ResultSetMapper;
-import com.endava.internship.cryptomarket.confservice.data.dbutils.SQLStatementFunction;
-import com.endava.internship.cryptomarket.confservice.data.dbutils.StatementEntityConsumer;
-import com.endava.internship.cryptomarket.confservice.data.mapper.SqlArgumentsMapper;
-import com.endava.internship.cryptomarket.confservice.data.model.exception.RepositoryException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public abstract class JdbcRepository {
 
-    private final DataSource hikariDataSource;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final SqlArgumentsMapper mapper;
-
-    protected <T> T executeSelectQuery(String query, ResultSetMapper<T> mapper) {
-        return executeStatement(query, statement -> {
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return mapper.map(resultSet);
-            }
-        });
-    }
-
-    protected void executeQueryWithArguments(String query, Map<Integer, Object> arguments) {
-        executeStatement(query, statement -> {
-            mapSqlArguments(arguments, statement);
-            return statement.executeUpdate();
-        });
-    }
-
-    protected <T> void executeQueryWithArguments(String query,
-                                                 @NonNull T entity,
-                                                 @NonNull StatementEntityConsumer<T> mapper,
-                                                 Map<Integer, Object> arguments) {
-        executeStatement(query, statement -> {
-            mapper.accept(statement, entity);
-            mapSqlArguments(arguments, statement);
-            return statement.executeUpdate();
-        });
-    }
-
-    protected <T> T executeSelectQuery(String query, ResultSetMapper<T> mapper, Map<Integer, Object> arguments) {
-        return executeStatement(query, statement -> {
-            mapSqlArguments(arguments, statement);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                return mapper.map(resultSet);
-            }
-        });
-    }
-
-    private <T> T executeStatement(String query, SQLStatementFunction<T> function) {
-        try (Connection connection = hikariDataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            return function.apply(statement);
-        } catch (SQLException ex) {
-            throw new RepositoryException("Connection to database failed: " + ex.getMessage(), ex);
+    protected <T> List<T> executeSelectQuery(String query, RowMapper<T> mapper) {
+        try {
+            return jdbcTemplate.queryForStream(query, new HashMap<>(), mapper).collect(toList());
+        }
+        catch (EmptyResultDataAccessException e){
+            return new ArrayList<>();
         }
     }
 
-    private void mapSqlArguments(Map<Integer, Object> arguments, PreparedStatement statement) throws SQLException {
-        for (var entry : arguments.entrySet()) {
-            mapper.process(entry, statement);
+    protected <T> Optional<T> executeSelectQuery(String query, RowMapper<T> mapper, Map<String, Object> arguments) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(query, arguments, mapper));
+        }
+        catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
     }
+
+    protected void executeQueryWithArguments(String query, Map<String, Object> arguments) {
+        jdbcTemplate.update(query, arguments);
+    }
+
 }
