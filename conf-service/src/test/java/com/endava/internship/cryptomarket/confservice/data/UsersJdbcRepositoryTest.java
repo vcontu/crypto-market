@@ -8,6 +8,7 @@ import java.util.Optional;
 import static java.time.LocalDateTime.now;
 
 import javax.sql.DataSource;
+import javax.transaction.Transactional;
 
 import org.dbunit.DataSourceBasedDBTestCase;
 import org.dbunit.IDatabaseTester;
@@ -18,13 +19,15 @@ import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
+import org.hibernate.Session;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.endava.internship.cryptomarket.confservice.data.mapper.UserRowMapper;
 import com.endava.internship.cryptomarket.confservice.data.model.Roles;
 import com.endava.internship.cryptomarket.confservice.data.model.Status;
 import com.endava.internship.cryptomarket.confservice.data.model.User;
@@ -62,7 +65,7 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
-        createDatasource(new UserRowMapper());
+        createDatasource();
 
         databaseTester = new JdbcDatabaseTester(
                 "oracle.jdbc.driver.OracleDriver",
@@ -157,6 +160,7 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
     }
 
     @Test
+    @Transactional
     public void testDeleteUserNonexistent() throws DataSetException {
         List<User> expectedUsers = getAllExpectedUsers(0);
 
@@ -215,7 +219,7 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
         assertThat(userJdbcRepository.exists(nonexistentUser)).isFalse();
     }
 
-    private void createDatasource(UserRowMapper mapper) {
+    private void createDatasource() {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("oracle.jdbc.driver.OracleDriver");
         config.setJdbcUrl(URL);
@@ -223,7 +227,23 @@ public class UsersJdbcRepositoryTest extends DataSourceBasedDBTestCase {
         config.setPassword(PASSWORD);
         config.setMaximumPoolSize(10);
         dataSource = new HikariDataSource(config);
-        userJdbcRepository = new UserJdbcRepository(new NamedParameterJdbcTemplate(dataSource), mapper);
+
+        createRepository();
+    }
+
+    private void createRepository() {
+        LocalContainerEntityManagerFactoryBean em
+                = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(dataSource);
+        em.setPackagesToScan("com.endava.internship.cryptomarket.confservice.data.model");
+
+        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        em.setJpaVendorAdapter(vendorAdapter);
+        em.afterPropertiesSet();
+
+        Session session = em.getObject().createEntityManager().unwrap(Session.class);
+
+        userJdbcRepository = new UserJdbcRepository(em.getObject().createEntityManager(), session);
     }
 
     private void clearTable() throws Exception {

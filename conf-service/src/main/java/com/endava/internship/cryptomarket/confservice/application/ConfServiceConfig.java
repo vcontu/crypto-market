@@ -1,7 +1,12 @@
 package com.endava.internship.cryptomarket.confservice.application;
 
+import java.util.Properties;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -11,7 +16,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -20,6 +31,7 @@ import com.zaxxer.hikari.HikariDataSource;
 @Configuration
 @Import({ValidationConfig.class, WebMvcConfiguration.class})
 @EnableWebMvc
+@EnableTransactionManagement
 @ComponentScan(basePackages = {
         "com.endava.internship.cryptomarket.confservice.api",
         "com.endava.internship.cryptomarket.confservice.business",
@@ -57,8 +69,52 @@ public class ConfServiceConfig {
     }
 
     @Bean
-    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-        return new NamedParameterJdbcTemplate(dataSource);
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(DataSource dataSource) {
+        LocalContainerEntityManagerFactoryBean em
+                = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(dataSource);
+        em.setPackagesToScan("com.endava.internship.cryptomarket.confservice.data.model");
+
+        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        em.setJpaVendorAdapter(vendorAdapter);
+        em.setJpaProperties(additionalProperties());
+
+        return em;
+    }
+
+    @Bean
+    public PlatformTransactionManager transactionManager(LocalContainerEntityManagerFactoryBean entityManagerFactoryBean) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(entityManagerFactoryBean.getObject());
+
+        return transactionManager;
+    }
+
+    @Bean
+    public EntityManagerFactory entityManagerFactory(LocalContainerEntityManagerFactoryBean entityManagerFactoryBean){
+        return entityManagerFactoryBean.getObject();
+    }
+
+    @Bean
+    public EntityManager entityManager(EntityManagerFactory entityManagerFactory){
+        return entityManagerFactory.createEntityManager();
+    }
+
+    @Bean
+    public Session session(EntityManager entityManager){
+        return entityManager.unwrap(Session.class);
+    }
+
+    @Bean
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation(){
+        return new PersistenceExceptionTranslationPostProcessor();
+    }
+
+    private Properties additionalProperties() {
+        Properties properties = new Properties();
+        properties.setProperty("hibernate.hbm2ddl.auto", "validate");
+        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.OracleDialect");
+        return properties;
     }
 
 }

@@ -1,119 +1,57 @@
 package com.endava.internship.cryptomarket.confservice.data;
 
-import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Component;
+import static java.util.Objects.nonNull;
 
-import com.endava.internship.cryptomarket.confservice.data.mapper.UserRowMapper;
+import javax.persistence.EntityManager;
+
+import org.hibernate.Session;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.endava.internship.cryptomarket.confservice.data.model.User;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
-public class UserJdbcRepository extends JdbcRepository implements UserRepository{
+@RequiredArgsConstructor
+public class UserJdbcRepository implements UserRepository{
 
-    public static final String USERNAME_COLUMN = "username";
+    private final EntityManager entityManager;
 
-    private static final String FIND_ALL_USERS_QUERY =
-            "SELECT username, email, role, status, created_on, updated_on, updated_by FROM t_user";
-
-    private static final String FIND_USER_QUERY =
-            "SELECT username, email, role, status, created_on, updated_on, updated_by FROM t_user WHERE username = :username";
-
-    private static final String INSERT_QUERY =
-            "INSERT INTO t_user(username, email, role, status, created_on) VALUES(:username, :email, :role, :status, :createdOn)";
-
-    private static final String DELETE_QUERY =
-            "DELETE FROM t_user WHERE username = :username";
-
-    private static final String UPDATE_QUERY = "UPDATE t_user "
-            + "SET email = :email, "
-            + "role = :role, "
-            + "status = :status, "
-            + "created_on = :createdOn, "
-            + "updated_on = :updatedOn, "
-            + "updated_by = :updatedBy "
-            + "WHERE username = :username ";
-
-    public static final String EMAIL_COLUMN = "email";
-
-    public static final String ROLE_COLUMN = "role";
-
-    public static final String STATUS_COLUMN = "status";
-
-    public static final String CREATED_ON_COLUMN = "createdOn";
-
-    public static final String UPDATED_ON_COLUMN = "updatedOn";
-
-    public static final String UPDATED_BY_COLUMN = "updatedBy";
-
-    private final UserRowMapper userMapper;
-
-    public UserJdbcRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate, UserRowMapper userMapper) {
-        super(namedParameterJdbcTemplate);
-        this.userMapper = userMapper;
-    }
+    private final Session session;
 
     @Override
     public List<User> getAll() {
-        return executeSelectQuery(FIND_ALL_USERS_QUERY, userMapper);
+        return entityManager.createQuery("SELECT u FROM T_USER u", User.class).getResultList();
     }
 
     @Override
     public Optional<User> get(String username) {
-        return executeSelectQuery(FIND_USER_QUERY, userMapper, Map.of(USERNAME_COLUMN, username));
+        return Optional.ofNullable(entityManager.find(User.class, username));
     }
 
     @Override
     public boolean save(User newUser) {
-        Optional<User> user = executeSelectQuery(FIND_USER_QUERY, userMapper, Map.of(USERNAME_COLUMN, newUser.getUsername()));
-        if(user.isPresent()){
-            executeQueryWithArguments(UPDATE_QUERY, getUpdateArguments(newUser));
-        }
-        else {
-            executeQueryWithArguments(INSERT_QUERY, getInsertArguments(newUser));
-        }
+        session.saveOrUpdate(newUser);
         return true;
     }
 
     @Override
+    @Transactional
     public boolean delete(String username) {
-        Optional<User> user = executeSelectQuery(FIND_USER_QUERY, userMapper, Map.of(USERNAME_COLUMN, username));
-        if(user.isPresent()) {
-            executeQueryWithArguments(DELETE_QUERY, Map.of(USERNAME_COLUMN, username));
-            return true;
-        }
-        return false;
+        entityManager.getTransaction().begin();
+        int updatedRows = entityManager.createQuery("DELETE FROM T_USER u WHERE u.username = :username")
+                .setParameter("username", username)
+                .executeUpdate();
+        entityManager.getTransaction().commit();
+        return updatedRows == 1;
     }
 
     @Override
     public boolean exists(User user) {
-        Optional<User> optionalUser = executeSelectQuery(FIND_USER_QUERY, userMapper, Map.of(USERNAME_COLUMN, user.getUsername()));
-        return optionalUser.isPresent();
-    }
-
-    private Map<String, Object> getInsertArguments(User user){
-        HashMap<String, Object> arguments = new HashMap<>();
-        arguments.put(USERNAME_COLUMN, user.getUsername());
-        arguments.put(EMAIL_COLUMN, user.getEmail());
-        arguments.put(ROLE_COLUMN, user.getRole().toString());
-        arguments.put(STATUS_COLUMN, user.getStatus().toString());
-        arguments.put(CREATED_ON_COLUMN, Timestamp.valueOf(user.getCreatedOn()));
-        return arguments;
-    }
-
-    private Map<String, Object> getUpdateArguments(User user){
-        HashMap<String, Object> arguments = new HashMap<>();
-        arguments.put(USERNAME_COLUMN, user.getUsername());
-        arguments.put(EMAIL_COLUMN, user.getEmail());
-        arguments.put(ROLE_COLUMN, user.getRole().toString());
-        arguments.put(STATUS_COLUMN, user.getStatus().toString());
-        arguments.put(CREATED_ON_COLUMN, Timestamp.valueOf(user.getCreatedOn()));
-        arguments.put(UPDATED_ON_COLUMN, Timestamp.valueOf(user.getUpdatedOn()));
-        arguments.put(UPDATED_BY_COLUMN, user.getUpdatedBy());
-        return arguments;
+        return nonNull(entityManager.find(User.class, user.getUsername()));
     }
 }
