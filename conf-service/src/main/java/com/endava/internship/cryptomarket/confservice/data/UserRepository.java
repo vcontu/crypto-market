@@ -1,19 +1,15 @@
 package com.endava.internship.cryptomarket.confservice.data;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+
 import com.endava.internship.cryptomarket.confservice.data.model.User;
 
-import java.util.List;
-import java.util.Optional;
+public interface UserRepository extends CrudRepository<User, String> {
 
-public interface UserRepository {
+    @Query("select u from User u")
+    List<User> findAll();
 
-    List<User> getAll();
-
-    Optional<User> get(String username);
-
-    boolean save(User newUser);
-
-    boolean delete(String username);
-
-    boolean exists(User user);
 }

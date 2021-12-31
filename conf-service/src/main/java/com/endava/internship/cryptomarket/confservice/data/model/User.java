@@ -6,6 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import static javax.persistence.EnumType.STRING;
 
@@ -26,7 +27,8 @@ import static lombok.AccessLevel.PRIVATE;
 @AllArgsConstructor(access = PRIVATE)
 @NoArgsConstructor
 @ToString
-@Entity(name = "T_USER")
+@Entity
+@Table(name = "T_USER")
 public class User {
 
     @Id
