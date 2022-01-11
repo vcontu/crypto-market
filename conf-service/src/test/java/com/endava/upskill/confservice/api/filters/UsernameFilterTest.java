@@ -18,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.endava.upskill.confservice.api.CustomHeaders;
+
 @ExtendWith(MockitoExtension.class)
 class UsernameFilterTest {
 
@@ -38,7 +40,7 @@ class UsernameFilterTest {
     @Test
     void whenFilterUsernameHeaderWithUnauthorisedUser_thenReturn403ForbiddenAndPrintMessage() throws IOException, ServletException {
         String expectedMessage = "Access Denied for user: userunknown";
-        when(requestMock.getHeader("username")).thenReturn("userunknown");
+        when(requestMock.getHeader(CustomHeaders.USERNAME)).thenReturn("userunknown");
         when(responseMock.getWriter()).thenReturn(writerMock);
 
         usernameFilter.doFilter(requestMock, responseMock, chainMock);
@@ -51,7 +53,7 @@ class UsernameFilterTest {
     @Test
     void whenFilterEmptyUsernameHeader_thenReturn403ForbiddenAndPrintMessage() throws IOException, ServletException {
         String expectedMessage = "Access Denied for user: ";
-        when(requestMock.getHeader("username")).thenReturn(null);
+        when(requestMock.getHeader(CustomHeaders.USERNAME)).thenReturn(null);
         when(responseMock.getWriter()).thenReturn(writerMock);
 
         usernameFilter.doFilter(requestMock, responseMock, chainMock);
@@ -63,7 +65,7 @@ class UsernameFilterTest {
 
     @Test
     void whenFilterUsernameHeaderWithAuthorisedUser_thenDoFilterFurther() throws IOException, ServletException {
-        when(requestMock.getHeader("username")).thenReturn("admin");
+        when(requestMock.getHeader(CustomHeaders.USERNAME)).thenReturn("admin");
 
         usernameFilter.doFilter(requestMock, responseMock, chainMock);
 

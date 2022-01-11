@@ -19,8 +19,6 @@ import com.endava.upskill.confservice.service.HelloService;
 @ExtendWith(MockitoExtension.class)
 class HelloServletTest {
 
-    private static final String TEST_MESSAGE = "Hello World!";
-
     private final HelloServlet testServlet = new HelloServlet();
 
     @Mock
@@ -37,6 +35,7 @@ class HelloServletTest {
 
     @Test
     void whenSendGetRequest_thenShowMessageFromHelloService() throws IOException {
+        final String TEST_MESSAGE = "Hello World!";
         when(serviceMock.getResponse()).thenReturn(TEST_MESSAGE);
         when(responseMock.getWriter()).thenReturn(writerMock);
         testServlet.setHelloService(serviceMock);

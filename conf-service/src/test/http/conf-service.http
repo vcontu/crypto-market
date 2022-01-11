@@ -1,0 +1,30 @@
+GET http://localhost:8080/conf-service/hello
+
+###
+GET http://localhost:8080/conf-service/hello
+Accept: text/plain
+
+###
+GET http://localhost:8080/conf-service/hello
+Accept: text/html
+###
+
+GET http://localhost:8080/conf-service/restricted
+
+###
+GET http://localhost:8080/conf-service/restricted
+username: random
+
+###
+GET http://localhost:8080/conf-service/restricted
+Username: admin
+
+###
+GET http://localhost:8080/conf-service/restricted
+Accept: text/html
+Username: admin
+
+###
+GET http://localhost:8080/conf-service/restricted
+Accept: text/plain
+Username: admin

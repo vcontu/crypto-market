@@ -14,12 +14,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
+import com.endava.upskill.confservice.api.CustomHeaders;
+
 @WebFilter("/restricted")
 public class UsernameFilter extends HttpFilter {
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
-        String username = req.getHeader("username");
+        String username = req.getHeader(CustomHeaders.USERNAME);
 
         if ("admin".equals(username)) {
             chain.doFilter(req, res);

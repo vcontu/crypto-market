@@ -14,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.endava.upskill.confservice.api.CustomHeaders;
+
 @ExtendWith(MockitoExtension.class)
 class RestrictedServletTest {
 
@@ -31,7 +33,7 @@ class RestrictedServletTest {
     @Test
     void whenSendGetRequest_thenGrantAccessForUser() throws IOException {
         when(responseMock.getWriter()).thenReturn(writerMock);
-        when(requestMock.getHeader("username")).thenReturn("admin");
+        when(requestMock.getHeader(CustomHeaders.USERNAME)).thenReturn("admin");
 
         testServlet.doGet(requestMock, responseMock);
 

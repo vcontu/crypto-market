@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.endava.upskill.confservice.api.CustomHeaders;
+
 @WebServlet("/restricted")
 public class RestrictedServlet extends HttpServlet {
 
@@ -16,6 +18,6 @@ public class RestrictedServlet extends HttpServlet {
         resp.setContentType("text/plain");
 
         PrintWriter writer = resp.getWriter();
-        writer.println("Access Granted for user: " + req.getHeader("username"));
+        writer.println("Access Granted for user: " + req.getHeader(CustomHeaders.USERNAME));
     }
 }
