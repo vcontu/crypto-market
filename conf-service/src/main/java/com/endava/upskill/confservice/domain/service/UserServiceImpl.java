@@ -6,10 +6,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.endava.upskill.confservice.config.AdminConfig;
 import com.endava.upskill.confservice.domain.dao.UserRepository;
 import com.endava.upskill.confservice.domain.model.exception.DomainException;
-import com.endava.upskill.confservice.domain.model.user.Status;
 import com.endava.upskill.confservice.domain.model.user.User;
 import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
@@ -37,11 +35,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public void createUser(UserDto userDto, LocalDateTime createdOn, String requestUsername) {
         final User user = User.from(userDto, createdOn, requestUsername); //requester is already validated in filter
-
-        if (user.getStatus() == Status.INACTV) {
-            throw DomainException.ofUserValidationStatus();
-        }
-
         final boolean userAlreadyExists = !userRepository.save(user);
         if (userAlreadyExists) {
             throw DomainException.ofUserAlreadyExists(userDto.username());
@@ -50,10 +43,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(String username, String requesterUsername) {
-        if (AdminConfig.ADMIN_USERNAME.equals(username)) {
-            throw DomainException.ofUserNotRemovable(username);
-        }
-
         boolean nothingToDelete = !userRepository.delete(username);
         if (nothingToDelete) {
             throw DomainException.ofUserNotFound(username);

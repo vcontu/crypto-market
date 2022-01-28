@@ -18,18 +18,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasItem;
 
-import com.endava.upskill.confservice.api.http.Endpoint;
 import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
+import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 
-import static com.endava.upskill.confservice.api.http.Endpoint.CREATE_USER;
+import static com.endava.upskill.confservice.util.Endpoint.CREATE_USER;
 
 import io.restassured.path.json.JsonPath;
 
 import static io.restassured.RestAssured.given;
+
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

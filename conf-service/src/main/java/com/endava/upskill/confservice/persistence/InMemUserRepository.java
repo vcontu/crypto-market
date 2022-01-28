@@ -1,4 +1,4 @@
-package com.endava.upskill.confservice.domain.dao;
+package com.endava.upskill.confservice.persistence;
 
 import java.util.List;
 import java.util.Map;
@@ -7,10 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
+import com.endava.upskill.confservice.domain.dao.UserRepository;
 import com.endava.upskill.confservice.domain.model.user.User;
 
 @Component
-public class UsersInMemRepository implements UserRepository {
+public class InMemUserRepository implements UserRepository {
 
     private final Map<String, User> userMap = new ConcurrentHashMap<>();
 

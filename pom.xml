@@ -18,10 +18,13 @@
         <lombok.version>1.18.22</lombok.version>
 
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
-        <spring-context.version>5.3.4</spring-context.version>
+        <spring-framework.version>5.3.4</spring-framework.version>
+        <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
+        <javax.el.version>3.0.0</javax.el.version>
         <jackson-core.version>2.12.5</jackson-core.version>
         <logback.version>1.2.10</logback.version>
         <slf4j-api.version>1.7.32</slf4j-api.version>
+        <commons-lang3.version>3.11</commons-lang3.version>
 
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <assertj-core.version>3.22.0</assertj-core.version>
@@ -30,6 +33,9 @@
         <rest-assured.version>4.3.3</rest-assured.version>
         <archunit-junit5.version>0.22.0</archunit-junit5.version>
         <jsonassert.version>1.5.0</jsonassert.version>
+        <junit-platform-suite-engine.version>1.8.2</junit-platform-suite-engine.version>
+        <json-path.version>2.6.0</json-path.version>
+        <rest-assured-mock-mvc.version>4.5.0</rest-assured-mock-mvc.version>
 
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
@@ -40,33 +46,43 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <junit-platform-suite-engine.version>1.8.2</junit-platform-suite-engine.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <!--Spring servlet framework. Pulls basic spring dependendcies as well, including context-->
                 <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring-context.version}</version>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring-framework.version}</version>
             </dependency>
             <dependency>
+                <!--Used for bean validation JSR-303. Provides both API and the implementation for Validator-->
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
+            </dependency>
+            <dependency>
+                <!--The main servlet API which acts as bridge between tomcat and spring mvc-->
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${javax.servlet-api.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <!-- Request/Response Object serialization -->
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson-core.version}</version>
             </dependency>
             <dependency>
+                <!-- Jackson support for java 8 DateTime API -->
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
                 <version>${jackson-core.version}</version>
             </dependency>
             <dependency>
+                <!-- Logging -->
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
@@ -88,12 +104,19 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring-framework.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${junit-jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <!-- Support for Junit Platform, allows to run test suites which is not part of junit jupiter -->
                 <groupId>org.junit.platform</groupId>
                 <artifactId>junit-platform-suite-engine</artifactId>
                 <version>${junit-platform-suite-engine.version}</version>
@@ -107,33 +130,71 @@
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito-core.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <!--Only necessary when trying to mock final classes (like records for example)-->
+                <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
                 <version>${mockito-core.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <!--Mockito integration with junit jupiter. Contains @ExtendWith(MockitoExtension.class)-->
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-junit-jupiter</artifactId>
                 <version>${mockito-junit-jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <!--Testing the package namespace and overall architecture of the application-->
                 <groupId>com.tngtech.archunit</groupId>
                 <artifactId>archunit-junit5</artifactId>
                 <version>${archunit-junit5.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <!--REST API testing library-->
                 <groupId>io.rest-assured</groupId>
                 <artifactId>rest-assured</artifactId>
                 <version>${rest-assured.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <!--Adapter of RestAssured over Springs MockMvc-->
+                <groupId>io.rest-assured</groupId>
+                <artifactId>spring-mock-mvc</artifactId>
+                <version>${rest-assured-mock-mvc.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <!--Can do Asserts on Json string, rather then comparing them literally-->
                 <groupId>org.skyscreamer</groupId>
                 <artifactId>jsonassert</artifactId>
                 <version>${jsonassert.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <!--Can extract from a json a specific path-->
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>${json-path.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <!--Used by hibernate validator to interpolate error messages. -->
+                <!--Tomcat provides this, but in mock mvc environments it is missing-->
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.el</artifactId>
+                <version>${javax.el.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

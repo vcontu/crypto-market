@@ -11,16 +11,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.endava.upskill.confservice.api.http.Endpoint;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
 import com.endava.upskill.confservice.domain.model.user.Status;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
+import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 
-import static com.endava.upskill.confservice.api.http.Endpoint.*;
 import static com.endava.upskill.confservice.provisioning.UserOnboarding.randomUsername;
+import static com.endava.upskill.confservice.util.Endpoint.*;
 
 import io.restassured.http.Headers;
 

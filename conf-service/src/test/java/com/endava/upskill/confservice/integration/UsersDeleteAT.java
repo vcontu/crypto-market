@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import com.endava.upskill.confservice.api.http.Endpoint;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
+import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 

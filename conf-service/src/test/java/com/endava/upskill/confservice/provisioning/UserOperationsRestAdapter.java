@@ -9,8 +9,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.util.Tokens;
 
-import static com.endava.upskill.confservice.api.http.Endpoint.CREATE_USER;
-import static com.endava.upskill.confservice.api.http.Endpoint.DELETE_USER;
+import static com.endava.upskill.confservice.util.Endpoint.CREATE_USER;
+import static com.endava.upskill.confservice.util.Endpoint.DELETE_USER;
 import static com.endava.upskill.confservice.util.ResponseValidationSpecs.buildRequestSpec;
 
 import io.restassured.RestAssured;

@@ -8,11 +8,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import com.endava.upskill.confservice.api.http.Endpoint;
-import com.endava.upskill.confservice.api.http.HttpHeaders;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
+import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 
@@ -21,6 +20,7 @@ import static com.endava.upskill.confservice.domain.model.user.Status.ACTIVE;
 import static com.endava.upskill.confservice.domain.model.user.Status.INACTV;
 import static com.endava.upskill.confservice.provisioning.UserOnboarding.randomUsername;
 
+import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import lombok.RequiredArgsConstructor;
 
@@ -29,8 +29,6 @@ import static io.restassured.RestAssured.given;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("POST /users")
 public class UsersCreateAT extends ResponseValidationSpecs {
-
-    private static final String JSON = HttpHeaders.APPLICATION_JSON;
 
     private static final String CREATE_USER_PATH = Endpoint.CREATE_USER.getPath();
 
@@ -59,7 +57,7 @@ public class UsersCreateAT extends ResponseValidationSpecs {
 
         given()
                 .headers(Tokens.REQUESTER_ADMIN)
-                .contentType(JSON)
+                .contentType(ContentType.JSON)
                 .body("""
                         {
                             "username": "userhello",
@@ -81,7 +79,7 @@ public class UsersCreateAT extends ResponseValidationSpecs {
     void givenCreateUserWithInvalidRequestObject_respondWithException(CreateUserTest test) {
         given()
                 .headers(Tokens.REQUESTER_ADMIN)
-                .contentType(JSON)
+                .contentType(ContentType.JSON)
                 .body(test.requestObject)
 
                 .when()
@@ -120,7 +118,7 @@ public class UsersCreateAT extends ResponseValidationSpecs {
 
             given()
                     .headers(onboarding.buildRequesterHeaders())
-                    .contentType(JSON)
+                    .contentType(ContentType.JSON)
                     .body(UserOnboarding.randomUser())
 
                     .when()
@@ -139,7 +137,7 @@ public class UsersCreateAT extends ResponseValidationSpecs {
 
             given()
                     .headers(Tokens.REQUESTER_ADMIN)
-                    .contentType(JSON)
+                    .contentType(ContentType.JSON)
                     .body(alreadyExistingUser)
 
                     .when()

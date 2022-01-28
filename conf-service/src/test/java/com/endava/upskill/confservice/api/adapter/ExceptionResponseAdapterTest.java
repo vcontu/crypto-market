@@ -1,158 +1,107 @@
 package com.endava.upskill.confservice.api.adapter;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import javax.servlet.http.HttpServletResponse;
-
-import static javax.servlet.http.HttpServletResponse.*;
-
-import org.json.JSONException;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.endava.upskill.confservice.api.http.HttpHeaders;
 import com.endava.upskill.confservice.domain.model.exception.DomainException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
+import com.fasterxml.jackson.core.JsonParseException;
 
-import lombok.Getter;
+import static com.endava.upskill.confservice.util.Tokens.USERNAME;
 
 @ExtendWith(MockitoExtension.class)
 class ExceptionResponseAdapterTest {
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final ExceptionResponseAdapter exceptionResponseAdapter = new ExceptionResponseAdapter(objectMapper);
+    private final static HttpStatus DUMMY_HTTP_STATUS = HttpStatus.BAD_REQUEST;
 
-    @Mock
-    private HttpServletResponse response;
+    private final ExceptionResponseAdapter exceptionAdapter = new ExceptionResponseAdapter();
 
     @Mock
-    private PrintWriter writer;
+    private HttpHeaders headers;
 
-    @Captor
-    private ArgumentCaptor<String> jsonCaptor;
+    @Mock
+    private WebRequest request;
 
-    @BeforeEach
-    void setUp() throws IOException {
-        when(response.getWriter()).thenReturn(writer);
+    @Test
+    void handleDomainException() {
+        final DomainException exception = DomainException.ofUserAlreadyExists(USERNAME);
+
+        final ResponseEntity<Object> responseEntity = exceptionAdapter.handleApplicationException(exception);
+
+        final ApiExceptionResponse expectedResponseObject = ApiExceptionResponse.byInterpolating(exception.getExceptionResponse(), USERNAME);
+        assertEquals(expectedResponseObject, responseEntity.getBody());
+        assertEquals(exception.getStatusCode(), responseEntity.getStatusCodeValue());
     }
 
-    @ParameterizedTest
-    @EnumSource(TestCases.class)
-    void whenPrepareResponse_thenPrintInResponseExpectedValue(TestCases testCases) throws IOException, JSONException {
-        exceptionResponseAdapter.prepareResponse(testCases.getDomainException(), response);
+    @Test
+    void handleHttpMessageNotReadable_forAllPurposeErrors() {
+        final var exception = mock(HttpMessageNotReadableException.class);
+        final ResponseEntity<Object> responseEntity = exceptionAdapter.handleHttpMessageNotReadable(exception, headers, DUMMY_HTTP_STATUS, request);
 
-        verify(response).addHeader(HttpHeaders.CONTENT_TYPE, HttpHeaders.APPLICATION_JSON);
-        verify(response).setStatus(testCases.getStatusCode());
-        verify(response).getWriter();
-        verify(writer).println(jsonCaptor.capture());
-
-        String actualResult = jsonCaptor.getValue();
-        JSONAssert.assertEquals(testCases.getExpectedResponse(), actualResult, JSONCompareMode.NON_EXTENSIBLE);
+        final ExceptionResponse response = ExceptionResponse.REQUEST_DESERIALIZATION;
+        assertEquals(ApiExceptionResponse.byInterpolating(response), responseEntity.getBody());
+        assertEquals(response.getStatusCode(), responseEntity.getStatusCodeValue());
+        verifyNoInteractions(headers, request);
     }
 
-    @Getter
-    private enum TestCases {
-        TEST_InvalidResourceUrl(DomainException.ofInvalidUrl(), SC_NOT_FOUND, """
-                {
-                    "status":"404 Not found",
-                    "message":"Invalid resource URL.",
-                    "errorCode":9000
-                }"""),
-        TEST_AuthenticationFailure(DomainException.ofAuthenticationFailure(), SC_UNAUTHORIZED, """
-                {
-                    "status":"401 Unauthorized",
-                    "message":"Authentication failure. Please provide an existing username in header 'Requester-Username'.",
-                    "errorCode":1100
-                }"""),
-        TEST_AuthorizationFailure(DomainException.ofAuthorizationFailure("user"), SC_FORBIDDEN, """
-                {
-                    "status":"403 Forbidden",
-                    "message":"Authorization failure. Requester user not allowed to modify users.",
-                    "errorCode":1200
-                }"""),
-        TEST_NotAcceptableContent(DomainException.ofNotAcceptableContent(), SC_NOT_ACCEPTABLE, """
-                {
-                    "status":"406 Not acceptable",
-                    "message":"The only accepted Content-Type is application/json; charset: UTF-8.",
-                    "errorCode":2100
-                }"""),
-        TEST_JsonMalformed(DomainException.ofJsonMalformed(), SC_BAD_REQUEST, """
-                {
-                    "status":"400 Bad request",
-                    "message":"Request object JSON malformed.",
-                    "errorCode":2200
-                }"""),
-        TEST_RequestObjectValidationFailure(DomainException.ofRequestObjectValidation(), SC_BAD_REQUEST, """
-                {
-                    "status":"400 Bad request",
-                    "message":"Request object validation failure.",
-                    "errorCode":2300
-                }"""),
-        TEST_UserValidationFailureUsername(DomainException.ofUserValidationUsername(), SC_BAD_REQUEST, """
-                {
-                    "status":"400 Bad request",
-                    "message":"User validation failure. Username must be lowercase alphanumeric, must not begin with a number and length between 5-32.",
-                    "errorCode":2400
-                }"""),
-        TEST_UserValidationFailureEmail(DomainException.ofUserValidationEmail(), SC_BAD_REQUEST, """
-                {
-                    "status":"400 Bad request",
-                    "message":"User validation failure. Email must be a valid.",
-                    "errorCode":2410
-                }"""),
-        TEST_UserValidationFailureStatus(DomainException.ofUserValidationStatus(), SC_BAD_REQUEST, """
-                {
-                    "status":"400 Bad request",
-                    "message":"User validation failure. The possible user status values are: ACTIVE or SUSPND.",
-                    "errorCode":2420
-                }"""),
-        TEST_UserAlreadyExists(DomainException.ofUserAlreadyExists("user"), SC_BAD_REQUEST, """
-                {
-                    "status":"400 Bad request",
-                    "message":"User username user already taken.",
-                    "errorCode":2500
-                }"""),
-        TEST_UserNotFound(DomainException.ofUserNotFound("user"), SC_NOT_FOUND, """
-                {
-                    "status":"404 Not found",
-                    "message":"User user does not exist.",
-                    "errorCode":3100
-                }"""),
-        TEST_DeleteUserForbidden(DomainException.ofUserNotRemovable("admin"), SC_FORBIDDEN, """
-                {
-                    "status":"403 Forbidden",
-                    "message":"User admin is not allowed to be removed.",
-                    "errorCode":4100
-                }"""),
-        TEST_InternalServerError(DomainException.ofInternalServerError(), SC_INTERNAL_SERVER_ERROR, """
-                {
-                    "status":"500 Internal server error",
-                    "message":"Unknown internal error.",
-                    "errorCode":9999
-                }""");
+    @Test
+    void handleHttpMessageNotReadable_forJsonMalformed() {
+        final var exception = mock(HttpMessageNotReadableException.class);
+        when(exception.getCause()).thenReturn(mock(JsonParseException.class));
+        final ResponseEntity<Object> responseEntity = exceptionAdapter.handleHttpMessageNotReadable(exception, headers, DUMMY_HTTP_STATUS, request);
 
-        private final DomainException domainException;
+        final ExceptionResponse response = ExceptionResponse.JSON_MALFORMED;
+        assertEquals(ApiExceptionResponse.byInterpolating(response), responseEntity.getBody());
+        assertEquals(response.getStatusCode(), responseEntity.getStatusCodeValue());
+        verifyNoInteractions(headers, request);
+    }
 
-        private final int statusCode;
+    @Test
+    void handleHttpMediaTypeNotSupported() {
+        final var exception = mock(HttpMediaTypeNotSupportedException.class);
+        final ResponseEntity<Object> responseEntity = exceptionAdapter.handleHttpMediaTypeNotSupported(exception, headers, DUMMY_HTTP_STATUS, request);
 
-        private final String expectedResponse;
+        final ExceptionResponse response = ExceptionResponse.NOT_ACCEPTABLE_CONTENT;
+        assertEquals(ApiExceptionResponse.byInterpolating(response), responseEntity.getBody());
+        assertEquals(response.getStatusCode(), responseEntity.getStatusCodeValue());
+        verifyNoInteractions(exception, headers, request);
+    }
 
-        TestCases(DomainException exception, int statusCode, String jsonResponse) {
-            this.domainException = exception;
-            this.statusCode = statusCode;
-            this.expectedResponse = jsonResponse;
-        }
+    @Test
+    void handleNoHandlerFoundException() {
+        final var exception = mock(NoHandlerFoundException.class);
+        final ResponseEntity<Object> responseEntity = exceptionAdapter.handleNoHandlerFoundException(exception, headers, DUMMY_HTTP_STATUS, request);
+
+        final ExceptionResponse response = ExceptionResponse.INVALID_URL;
+        assertEquals(ApiExceptionResponse.byInterpolating(response), responseEntity.getBody());
+        assertEquals(response.getStatusCode(), responseEntity.getStatusCodeValue());
+        verifyNoInteractions(exception, headers, request);
+    }
+
+    @Test
+    void handleExceptionInternal() {
+        final var exception = mock(BindException.class);
+        final var object = mock(Object.class);
+        final ResponseEntity<Object> responseEntity = exceptionAdapter.handleExceptionInternal(exception, object, headers, DUMMY_HTTP_STATUS, request);
+
+        final ExceptionResponse response = ExceptionResponse.INTERNAL_SERVER;
+        assertEquals(ApiExceptionResponse.byInterpolating(response), responseEntity.getBody());
+        assertEquals(response.getStatusCode(), responseEntity.getStatusCodeValue());
+        verifyNoInteractions(exception, headers, request);
     }
 }

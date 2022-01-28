@@ -1,4 +1,4 @@
-package com.endava.upskill.confservice.config;
+package com.endava.upskill.confservice.application;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -13,9 +13,11 @@ import com.endava.upskill.confservice.domain.model.user.Status;
 import com.endava.upskill.confservice.domain.model.user.User;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class AdminConfig {
 
     public static final String ADMIN_USERNAME = "admin";
@@ -28,6 +30,7 @@ public class AdminConfig {
     public void adminUserInit() {
         final Optional<User> admin = userRepository.get(ADMIN_USERNAME);
         if (admin.isEmpty()) {
+            log.info("Creating {} user", ADMIN_USERNAME);
             final User newAdminUser = User.builder()
                     .username(ADMIN_USERNAME)
                     .email("admin@gmail.com")

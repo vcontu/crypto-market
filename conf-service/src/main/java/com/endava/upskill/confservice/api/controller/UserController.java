@@ -4,53 +4,66 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.stereotype.Component;
-
-import com.endava.upskill.confservice.config.AdminConfig;
-import com.endava.upskill.confservice.domain.model.exception.DomainException;
 import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.domain.service.UserService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-@Component
 @RequiredArgsConstructor
+@RestController
+@RequestMapping("/users")
+@Slf4j
+@Validated
 public class UserController {
+
+    public static final String REQUESTER_HEADER = "Requester-Username";
 
     private final UserService userService;
 
     private final Clock clock;
 
-    public ApiResponse<List<UserDto>> listAllUsers() {
-        List<UserDto> allUsers = userService.getAllUsers();
-        return new ApiResponse<>(HttpServletResponse.SC_OK, allUsers);
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDto> listAllUsers() {
+        log.info("Listing all users");
+        return userService.getAllUsers();
     }
 
-    public ApiResponse<UserDetailedDto> getUser(String userId) {
-        UserDetailedDto user = userService.getUser(userId);
-        return new ApiResponse<>(HttpServletResponse.SC_OK, user);
+    @GetMapping("/{username}")
+    @ResponseStatus(HttpStatus.OK)
+    public UserDetailedDto getUser(
+            @PathVariable String username) {
+        log.info("Getting user details: {}", username);
+        return userService.getUser(username);
     }
 
-    public ApiResponse<Void> createUser(UserDto user, final String requesterUsername) {
-        requireRequesterAdmin(requesterUsername);
-
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createUser(
+            @RequestBody
+                    UserDto user,
+            @RequestHeader(REQUESTER_HEADER)
+            @AdminOnly
+                    String requesterUsername) {
+        log.info("Creating user: {}", user);
         userService.createUser(user, LocalDateTime.now(clock), requesterUsername);
-        return new ApiResponse<>(HttpServletResponse.SC_CREATED);
     }
 
-    public ApiResponse<Void> deleteUser(String userId, String requesterUsername) {
-        requireRequesterAdmin(requesterUsername);
-
-        userService.deleteUser(userId, requesterUsername);
-        return new ApiResponse<>(HttpServletResponse.SC_NO_CONTENT);
-    }
-
-    private void requireRequesterAdmin(String requesterUsername) {
-        if (!requesterUsername.equals(AdminConfig.ADMIN_USERNAME)) {
-            throw DomainException.ofAuthorizationFailure(requesterUsername);
-        }
+    @DeleteMapping("/{username}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(
+            @PathVariable
+                    String username,
+            @RequestHeader(REQUESTER_HEADER)
+            @AdminOnly
+                    String requesterUsername) {
+        log.info("Deleting user: {}", username);
+        userService.deleteUser(username, requesterUsername);
     }
 }

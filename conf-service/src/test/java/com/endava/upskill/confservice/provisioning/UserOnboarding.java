@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.endava.upskill.confservice.domain.model.user.Status;
 import com.endava.upskill.confservice.domain.model.user.User;
+import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.util.Tokens;
 
@@ -101,10 +102,15 @@ public class UserOnboarding implements BeforeEachCallback, AfterEachCallback,
         return RandomStringUtils.randomAlphabetic(12).toLowerCase();
     }
 
-
     public static UserDto randomUser() {
         final String username = randomUsername();
         return new UserDto(username, "%s@gmail.com".formatted(username), Status.ACTIVE);
+    }
+
+    public static UserDetailedDto randomUserDetailed() {
+        final String username = randomUsername();
+        return new UserDetailedDto(username, "%s@gmail.com".formatted(username), Status.ACTIVE,
+                defaultCreatedOn, defaultCreatedOn, defaultCreatingRequesterUsername);
     }
 
     public static OnboardedUserBuilder of(UserDto userDto) {
@@ -147,6 +153,11 @@ public class UserOnboarding implements BeforeEachCallback, AfterEachCallback,
 
         public OnboardedUserBuilder updatedBy(String requesterUsername) {
             this.requesterUsername = requesterUsername;
+            return this;
+        }
+
+        public OnboardedUserBuilder usingRepository() {
+            onboardingEngine = OnboardingEngine.REPOSITORY;
             return this;
         }
 

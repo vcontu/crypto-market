@@ -14,19 +14,21 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.endava.upskill.confservice.domain.model.user.Status;
 import com.endava.upskill.confservice.domain.model.user.User;
-import com.endava.upskill.confservice.util.Tokens;
+import com.endava.upskill.confservice.persistence.InMemUserRepository;
+
+import static com.endava.upskill.confservice.util.Tokens.CLOCK_CONF_SERVICE;
 
 import lombok.Getter;
 
-class UsersInMemRepositoryTest {
+class InMemUserRepositoryTest {
 
-    private final UsersInMemRepository userRepository = new UsersInMemRepository();
+    private final InMemUserRepository userRepository = new InMemUserRepository();
 
     private enum TestUsers {
-        U01("operat1", "operat1@gmail.com", Status.ACTIVE, now(Tokens.CLOCK_FIXED)),
-        U02("operat2", "operat2@gmail.com", Status.ACTIVE, now(Tokens.CLOCK_FIXED)),
-        U03("operat3", "operat3@gmail.com", Status.SUSPND, now(Tokens.CLOCK_FIXED)),
-        U04("operat4", "operat4@gmail.com", Status.INACTV, now(Tokens.CLOCK_FIXED));
+        U01("operat1", "operat1@gmail.com", Status.ACTIVE, now(CLOCK_CONF_SERVICE)),
+        U02("operat2", "operat2@gmail.com", Status.ACTIVE, now(CLOCK_CONF_SERVICE)),
+        U03("operat3", "operat3@gmail.com", Status.SUSPND, now(CLOCK_CONF_SERVICE)),
+        U04("operat4", "operat4@gmail.com", Status.INACTV, now(CLOCK_CONF_SERVICE));
 
         @Getter
         private final User user;
@@ -65,7 +67,7 @@ class UsersInMemRepositoryTest {
                 .username("operat5")
                 .email("operat5@gmail.com")
                 .status(Status.ACTIVE)
-                .createdOn(now(Tokens.CLOCK_FIXED))
+                .createdOn(now(CLOCK_CONF_SERVICE))
                 .build();
 
         final boolean saveWasSuccessful = userRepository.save(user);

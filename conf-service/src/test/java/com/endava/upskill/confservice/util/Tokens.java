@@ -18,8 +18,6 @@ public interface Tokens {
 
      String USERNAME = "username";
 
-     String REQUESTER_USERNAME = "requester";
-
      String USERNAME_ADMIN = "admin";
 
      String USERNAME_NOT_EXISTING = "notexisting";
@@ -31,6 +29,8 @@ public interface Tokens {
      Headers REQUESTER_NULL = new Headers(new Header(REQUESTER_HEADER, null));
 
      Headers REQUESTER_NOT_EXISTING = new Headers(new Header(REQUESTER_HEADER, USERNAME_NOT_EXISTING));
+
+     Headers REQUESTER_USERNAME = new Headers(new Header(REQUESTER_HEADER, USERNAME));
 
      Headers REQUESTER_ADMIN = new Headers(new Header(REQUESTER_HEADER, USERNAME_ADMIN));
 

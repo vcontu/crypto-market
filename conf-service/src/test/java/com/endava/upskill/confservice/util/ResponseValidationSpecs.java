@@ -7,8 +7,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 
 import com.endava.upskill.confservice.api.adapter.ApiExceptionResponse;
-import com.endava.upskill.confservice.api.http.HttpHeaders;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
+import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
 import com.endava.upskill.confservice.domain.model.user.UserDto;
 
 import io.restassured.RestAssured;
@@ -28,17 +28,29 @@ public abstract class ResponseValidationSpecs {
 
     public static RequestSpecification buildRequestSpec(UserDto userDto) {
         return new RequestSpecBuilder()
-                .setContentType(HttpHeaders.APPLICATION_JSON)
+                .setContentType(ContentType.JSON)
                 .setBody(userDto)
                 .build();
     }
 
     public static ResponseSpecification buildResponseSpec(UserDto expected) {
         return new ResponseSpecBuilder()
-                .expectContentType(HttpHeaders.APPLICATION_JSON)
+                .expectContentType(ContentType.JSON)
                 .expectBody(UserDto.Fields.username, equalTo(expected.username()))
                 .expectBody(UserDto.Fields.email, equalTo(expected.email()))
-                .expectBody(UserDto.Fields.status, equalTo (expected.status().name()))
+                .expectBody(UserDto.Fields.status, equalTo(expected.status().name()))
+                .build();
+    }
+
+    public static ResponseSpecification buildResponseSpec(UserDetailedDto expected) {
+        return new ResponseSpecBuilder()
+                .expectContentType(ContentType.JSON)
+                .expectBody(UserDetailedDto.Fields.username, equalTo(expected.username()))
+                .expectBody(UserDetailedDto.Fields.email, equalTo(expected.email()))
+                .expectBody(UserDetailedDto.Fields.status, equalTo(expected.status().name()))
+                .expectBody(UserDetailedDto.Fields.createdOn, LocalDateTimeMatcher.equalTo(expected.createdOn()))
+                .expectBody(UserDetailedDto.Fields.updatedOn, LocalDateTimeMatcher.equalTo(expected.updatedOn()))
+                .expectBody(UserDetailedDto.Fields.updatedBy, equalTo(expected.updatedBy()))
                 .build();
     }
 
@@ -47,7 +59,7 @@ public abstract class ResponseValidationSpecs {
                 dtoFunction -> list.stream().map(dtoFunction).toArray(String[]::new);
 
         return new ResponseSpecBuilder()
-                .expectContentType(HttpHeaders.APPLICATION_JSON)
+                .expectContentType(ContentType.JSON)
                 .expectBody(UserDto.Fields.username, hasItems(fromList.apply(UserDto::username)))
                 .expectBody(UserDto.Fields.email, hasItems(fromList.apply(UserDto::email)))
                 .expectBody(UserDto.Fields.status, hasItems(fromList.apply(userDto -> userDto.status().name())))

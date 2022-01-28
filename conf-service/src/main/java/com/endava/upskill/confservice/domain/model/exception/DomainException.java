@@ -16,7 +16,7 @@ public class DomainException extends RuntimeException {
     }
 
     public int getStatusCode() {
-        return exceptionResponse.getStatusCode();
+        return exceptionResponse.getStatus().value();
     }
 
     public static DomainException ofAuthenticationFailure() {
@@ -31,43 +31,7 @@ public class DomainException extends RuntimeException {
         return new DomainException(ExceptionResponse.USER_NOT_FOUND, username);
     }
 
-    public static DomainException ofUserValidationUsername() {
-        return new DomainException(ExceptionResponse.USER_VALIDATION_USERNAME);
-    }
-
     public static DomainException ofUserAlreadyExists(String username) {
         return new DomainException(ExceptionResponse.USERNAME_EXISTS, username);
-    }
-
-    public static DomainException ofUserValidationStatus() {
-        return new DomainException(ExceptionResponse.USER_VALIDATION_STATUS);
-    }
-
-    public static DomainException ofRequestObjectValidation() {
-        return new DomainException(ExceptionResponse.REQUEST_DESERIALIZATION);
-    }
-
-    public static DomainException ofNotAcceptableContent() {
-        return new DomainException(ExceptionResponse.NOT_ACCEPTABLE_CONTENT);
-    }
-
-    public static DomainException ofJsonMalformed() {
-        return new DomainException(ExceptionResponse.JSON_MALFORMED);
-    }
-
-    public static DomainException ofInvalidUrl() {
-        return new DomainException(ExceptionResponse.INVALID_URL);
-    }
-
-    public static DomainException ofInternalServerError() {
-        return new DomainException(ExceptionResponse.INTERNAL_SERVER);
-    }
-
-    public static DomainException ofUserValidationEmail() {
-        return new DomainException(ExceptionResponse.USER_VALIDATION_EMAIL);
-    }
-
-    public static DomainException ofUserNotRemovable(String username) {
-        return new DomainException(ExceptionResponse.USER_NOT_REMOVABLE, username);
     }
 }

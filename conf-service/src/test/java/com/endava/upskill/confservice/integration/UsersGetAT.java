@@ -3,8 +3,8 @@ package com.endava.upskill.confservice.integration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.endava.upskill.confservice.api.http.Endpoint;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
+import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 

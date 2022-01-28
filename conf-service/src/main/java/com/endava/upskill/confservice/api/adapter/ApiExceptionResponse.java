@@ -1,13 +1,11 @@
 package com.endava.upskill.confservice.api.adapter;
 
-import com.endava.upskill.confservice.domain.model.exception.DomainException;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
 
-public record ApiExceptionResponse(String status, String message, int errorCode) {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    public ApiExceptionResponse(DomainException domainException) {
-        this(domainException.getExceptionResponse(), domainException.getMessage());
-    }
+public record ApiExceptionResponse(String status, String message, int errorCode) {
 
     public ApiExceptionResponse(ExceptionResponse exceptionResponse, String interpolatedMessage) {
         this(exceptionResponse.getStatusText(), interpolatedMessage, exceptionResponse.getBusinessError());
@@ -17,6 +15,7 @@ public record ApiExceptionResponse(String status, String message, int errorCode)
         return new ApiExceptionResponse(response, response.interpolateMessage(parameters));
     }
 
+    @NoArgsConstructor(access = AccessLevel.NONE)
     public static class Fields {
 
         public static final String status = "status";

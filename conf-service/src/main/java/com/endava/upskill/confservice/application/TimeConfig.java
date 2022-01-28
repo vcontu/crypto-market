@@ -1,4 +1,4 @@
-package com.endava.upskill.confservice.config;
+package com.endava.upskill.confservice.application;
 
 import java.time.Clock;
 

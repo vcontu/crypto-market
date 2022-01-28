@@ -2,6 +2,9 @@ package com.endava.upskill.confservice.domain.model.user;
 
 import java.time.LocalDateTime;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 public record UserDetailedDto(
         String username,
         String email,
@@ -15,6 +18,7 @@ public record UserDetailedDto(
                 user.getCreatedOn(), user.getUpdatedOn(), user.getUpdatedBy());
     }
 
+    @NoArgsConstructor(access = AccessLevel.NONE)
     public static class Fields {
 
         public static final String username = "username";
