@@ -15,9 +15,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.endava.upskill.confservice.api.adapter.ExceptionResponseAdapter;
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
+import com.endava.upskill.confservice.domain.model.update.UserUpdateDto;
 import com.endava.upskill.confservice.domain.service.UserService;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
 import com.endava.upskill.confservice.util.Endpoint;
@@ -47,7 +48,6 @@ class UserControllerTest extends ResponseValidationSpecs {
     @BeforeEach
     void setUp() {
         userController = new UserController(userService, Tokens.CLOCK_FIXED);
-        final ExceptionResponseAdapter exceptionResponseAdapter = new ExceptionResponseAdapter();
 
         //the default ObjectMapper will write dates as timestamps. This feature must be disabled.
         final MappingJackson2HttpMessageConverter jackson = new MappingJackson2HttpMessageConverter();
@@ -113,7 +113,26 @@ class UserControllerTest extends ResponseValidationSpecs {
                 .log().body()
                 .status(HttpStatus.CREATED);
 
-        verify(userService).createUser(userDto, Tokens.LDT, Tokens.USERNAME_ADMIN);
+        verify(userService).createUser(Tokens.USERNAME_ADMIN, userDto, Tokens.LDT);
+    }
+
+    @Test
+    void patchUser() {
+        final UserUpdateDto userUpdateDto = new UserUpdateDto(Tokens.USERNAME, Tokens.EMAIL, Status.ACTIVE);
+
+        given()
+                .headers(Tokens.REQUESTER_ADMIN)
+                .contentType(ContentType.JSON)
+                .body(userUpdateDto)
+
+                .when()
+                .patch(Endpoint.UPDATE_USER.getPath(), Tokens.USERNAME)
+
+                .then()
+                .log().body()
+                .status(HttpStatus.ACCEPTED);
+
+        verify(userService).updateUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME, userUpdateDto, Tokens.LDT);
     }
 
     @Test
@@ -127,6 +146,6 @@ class UserControllerTest extends ResponseValidationSpecs {
                 .then()
                 .status(HttpStatus.NO_CONTENT);
 
-        verify(userService).deleteUser(Tokens.USERNAME, Tokens.USERNAME_ADMIN);
+        verify(userService).deleteUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME);
     }
 }

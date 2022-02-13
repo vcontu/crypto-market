@@ -1,12 +1,16 @@
-package com.endava.upskill.confservice.domain.model.user;
+package com.endava.upskill.confservice.domain.model.entity;
 
 import java.time.LocalDateTime;
+
+import com.endava.upskill.confservice.domain.model.create.UserDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
+@Setter
 @Getter
 @Builder
 @EqualsAndHashCode(of = "username")

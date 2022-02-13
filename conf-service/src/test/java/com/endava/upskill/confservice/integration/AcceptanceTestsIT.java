@@ -18,6 +18,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
         UsersCreateAT.class,
         UsersGetAT.class,
         UsersListAT.class,
+        UsersUpdateAT.class,
         UsersDeleteAT.class
 })
 @SuiteDisplayName("/users Acceptance Tests")

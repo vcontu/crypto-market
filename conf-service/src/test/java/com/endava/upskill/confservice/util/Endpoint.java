@@ -7,6 +7,7 @@ public enum Endpoint {
     LIST_USERS("GET", "/users"),
     GET_USER("GET", "/users/{username}"),
     CREATE_USER("POST", "/users"),
+    UPDATE_USER("PATCH", "/users/{username}"),
     DELETE_USER("DELETE", "/users/{username}");
 
     private final String method;

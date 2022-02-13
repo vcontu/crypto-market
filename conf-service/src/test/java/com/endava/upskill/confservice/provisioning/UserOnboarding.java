@@ -9,10 +9,10 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import com.endava.upskill.confservice.domain.model.user.Status;
-import com.endava.upskill.confservice.domain.model.user.User;
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.entity.User;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
 import com.endava.upskill.confservice.util.Tokens;
 
 import io.restassured.http.Header;

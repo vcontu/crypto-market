@@ -11,9 +11,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.Status;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
-import com.endava.upskill.confservice.domain.model.user.Status;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
 import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
@@ -30,7 +30,7 @@ import static io.restassured.RestAssured.given;
 public class CommonExceptionsAT extends ResponseValidationSpecs {
 
     @ParameterizedTest
-    @ValueSource(strings = {"GET", "POST", "DELETE"})
+    @ValueSource(strings = {"GET", "POST", "PATCH", "DELETE"})
     @DisplayName("Invalid URL Endpoint: Invalid Resource URL")
     void whenEndpointWithInvalidUrlCalled_returnApiError(String method) {
         final ExceptionResponse exceptionResponse = ExceptionResponse.INVALID_URL;
@@ -80,18 +80,22 @@ public class CommonExceptionsAT extends ResponseValidationSpecs {
                     Arguments.of(Tokens.REQUESTER_MISSING, CREATE_USER),
                     Arguments.of(Tokens.REQUESTER_MISSING, GET_USER),
                     Arguments.of(Tokens.REQUESTER_MISSING, LIST_USERS),
+                    Arguments.of(Tokens.REQUESTER_MISSING, UPDATE_USER),
                     Arguments.of(Tokens.REQUESTER_MISSING, DELETE_USER),
                     Arguments.of(Tokens.REQUESTER_NULL, CREATE_USER),
                     Arguments.of(Tokens.REQUESTER_NULL, GET_USER),
                     Arguments.of(Tokens.REQUESTER_NULL, LIST_USERS),
+                    Arguments.of(Tokens.REQUESTER_NULL, UPDATE_USER),
                     Arguments.of(Tokens.REQUESTER_NULL, DELETE_USER),
                     Arguments.of(Tokens.REQUESTER_NOT_EXISTING, CREATE_USER),
                     Arguments.of(Tokens.REQUESTER_NOT_EXISTING, GET_USER),
                     Arguments.of(Tokens.REQUESTER_NOT_EXISTING, LIST_USERS),
+                    Arguments.of(Tokens.REQUESTER_NOT_EXISTING, UPDATE_USER),
                     Arguments.of(Tokens.REQUESTER_NOT_EXISTING, DELETE_USER),
                     Arguments.of(suspendedRequester, CREATE_USER),
                     Arguments.of(suspendedRequester, GET_USER),
                     Arguments.of(suspendedRequester, LIST_USERS),
+                    Arguments.of(suspendedRequester, UPDATE_USER),
                     Arguments.of(suspendedRequester, DELETE_USER)
             );
         }

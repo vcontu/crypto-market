@@ -16,9 +16,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.entity.User;
 import com.endava.upskill.confservice.domain.model.exception.DomainException;
-import com.endava.upskill.confservice.domain.model.user.Status;
-import com.endava.upskill.confservice.domain.model.user.User;
 import com.endava.upskill.confservice.domain.service.UserService;
 
 import static com.endava.upskill.confservice.api.controller.UserController.REQUESTER_HEADER;

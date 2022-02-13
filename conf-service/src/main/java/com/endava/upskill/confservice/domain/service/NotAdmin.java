@@ -28,7 +28,7 @@ public @interface NotAdmin {
 
     Class<?>[] groups() default {};
 
-    ExceptionResponse exceptionResponse() default ExceptionResponse.USER_NOT_REMOVABLE;
+    ExceptionResponse exceptionResponse();
 
     class NotAdminValidator implements ConstraintValidator<NotAdmin, String> {
 

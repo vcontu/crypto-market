@@ -7,9 +7,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 
 import com.endava.upskill.confservice.api.adapter.ApiExceptionResponse;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
+import com.endava.upskill.confservice.domain.model.update.UserUpdateDto;
 
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -30,6 +31,13 @@ public abstract class ResponseValidationSpecs {
         return new RequestSpecBuilder()
                 .setContentType(ContentType.JSON)
                 .setBody(userDto)
+                .build();
+    }
+
+    public static RequestSpecification buildRequestSpec(UserUpdateDto userUpdateDto) {
+        return new RequestSpecBuilder()
+                .setContentType(ContentType.JSON)
+                .setBody(userUpdateDto)
                 .build();
     }
 

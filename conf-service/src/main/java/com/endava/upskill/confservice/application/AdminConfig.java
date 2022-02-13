@@ -9,8 +9,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 import com.endava.upskill.confservice.domain.dao.UserRepository;
-import com.endava.upskill.confservice.domain.model.user.Status;
-import com.endava.upskill.confservice.domain.model.user.User;
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.entity.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

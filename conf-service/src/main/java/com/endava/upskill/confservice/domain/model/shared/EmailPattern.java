@@ -1,4 +1,4 @@
-package com.endava.upskill.confservice.domain.model.user;
+package com.endava.upskill.confservice.domain.model.shared;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -10,18 +10,16 @@ import javax.validation.Constraint;
 import javax.validation.Payload;
 import javax.validation.ReportAsSingleViolation;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
 
-@NotNull
 @Email(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 @Constraint(validatedBy = {})
 @ReportAsSingleViolation
-public @interface ValidEmail {
+public @interface EmailPattern {
 
     String message() default "${exceptionResponse.messageTemplate}";
 

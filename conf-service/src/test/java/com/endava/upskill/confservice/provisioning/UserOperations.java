@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
 
 public interface UserOperations {
 

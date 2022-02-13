@@ -8,8 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.endava.upskill.confservice.api.controller.UserController;
+import com.endava.upskill.confservice.domain.model.entity.Status;
 import com.endava.upskill.confservice.domain.model.exception.DomainException;
-import com.endava.upskill.confservice.domain.model.user.Status;
 import com.endava.upskill.confservice.domain.service.UserService;
 
 import lombok.RequiredArgsConstructor;

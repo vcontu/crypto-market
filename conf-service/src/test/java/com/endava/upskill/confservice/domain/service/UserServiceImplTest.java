@@ -18,11 +18,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.endava.upskill.confservice.domain.dao.UserRepository;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.entity.User;
 import com.endava.upskill.confservice.domain.model.exception.DomainException;
-import com.endava.upskill.confservice.domain.model.user.Status;
-import com.endava.upskill.confservice.domain.model.user.User;
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
+import com.endava.upskill.confservice.domain.model.update.UserUpdateDto;
 import com.endava.upskill.confservice.util.Tokens;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,14 +71,14 @@ class UserServiceImplTest {
     void whenDeleteExistentUser_thenNoExceptionThrown() {
         when(userRepository.delete(Tokens.USERNAME)).thenReturn(true);
 
-        assertThatNoException().isThrownBy(() -> userService.deleteUser(Tokens.USERNAME, Tokens.USERNAME_ADMIN));
+        assertThatNoException().isThrownBy(() -> userService.deleteUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME));
     }
 
     @Test
     void whenDeleteNonExistingUser_thenThrowUserNotFoundException() {
         when(userRepository.delete(Tokens.USERNAME)).thenReturn(false);
 
-        assertThatThrownBy(() -> userService.deleteUser(Tokens.USERNAME, Tokens.USERNAME_ADMIN))
+        assertThatThrownBy(() -> userService.deleteUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME))
                 .isEqualTo(DomainException.ofUserNotFound(Tokens.USERNAME));
     }
 
@@ -85,7 +86,7 @@ class UserServiceImplTest {
     void whenCreateUser_thenNoExceptionThrown() {
         when(userRepository.save(user)).thenReturn(true);
 
-        assertThatNoException().isThrownBy(() -> userService.createUser(UserDto.fromUser(user), Tokens.LDT, Tokens.USERNAME_ADMIN));
+        assertThatNoException().isThrownBy(() -> userService.createUser(Tokens.USERNAME_ADMIN, UserDto.fromUser(user), Tokens.LDT));
 
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue()).isEqualTo(user);
@@ -95,7 +96,7 @@ class UserServiceImplTest {
     void whenCreateUserWithExistentUsername_thenThrowUserAlreadyExistentException() {
         when(userRepository.save(user)).thenReturn(false);
 
-        assertThatThrownBy(() -> userService.createUser(UserDto.fromUser(user), Tokens.LDT, Tokens.USERNAME_ADMIN))
+        assertThatThrownBy(() -> userService.createUser(Tokens.USERNAME_ADMIN, UserDto.fromUser(user), Tokens.LDT))
                 .isEqualTo(DomainException.ofUserAlreadyExists(user.getUsername()));
     }
 
@@ -106,5 +107,49 @@ class UserServiceImplTest {
         Optional<User> actualUser = userService.getRequester(Tokens.USERNAME);
 
         assertThat(actualUser).contains(user);
+    }
+
+    @Test
+    void whenUpdateUser_thenNoExceptionThrown() {
+        final String email = "newmail@mail.com";
+        final UserUpdateDto updateDto = new UserUpdateDto(Tokens.USERNAME, email, Status.SUSPND);
+        final User originalUser = new User(Tokens.USERNAME, Tokens.EMAIL, Status.ACTIVE, Tokens.LDT, Tokens.LDT, Tokens.USERNAME_ADMIN);
+        final User updatedUser = new User(Tokens.USERNAME, email, Status.SUSPND, Tokens.LDT, Tokens.LDT.plusHours(1), Tokens.USERNAME_ADMIN);
+        when(userRepository.get(Tokens.USERNAME)).thenReturn(Optional.of(originalUser));
+        when(userRepository.update(updatedUser)).thenReturn(true);
+
+        assertThatNoException().isThrownBy(() -> userService.updateUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME, updateDto, Tokens.LDT.plusHours(1)));
+    }
+
+    @Test
+    void whenUpdateUserWasConcurrentlyRemoved_thenUserNotFound() {
+        final UserUpdateDto updateDto = new UserUpdateDto(Tokens.USERNAME, null, Status.SUSPND);
+        final User originalUser = new User(Tokens.USERNAME, Tokens.EMAIL, Status.ACTIVE, Tokens.LDT, Tokens.LDT, Tokens.USERNAME_ADMIN);
+        final User updatedUser = new User(Tokens.USERNAME, Tokens.EMAIL, Status.SUSPND, Tokens.LDT, Tokens.LDT.plusHours(1), Tokens.USERNAME_ADMIN);
+        when(userRepository.get(Tokens.USERNAME)).thenReturn(Optional.of(originalUser));
+        when(userRepository.update(updatedUser)).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.updateUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME, updateDto, Tokens.LDT.plusHours(1)))
+                .isEqualTo(DomainException.ofUserNotFound(Tokens.USERNAME));
+    }
+
+    @Test
+    void whenUpdateUserNotExisting_thenUserNotFound() {
+        final UserUpdateDto updateDto = new UserUpdateDto(Tokens.USERNAME, null, Status.SUSPND);
+
+        when(userRepository.get(Tokens.USERNAME)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME, updateDto, Tokens.LDT.plusHours(1)))
+                .isEqualTo(DomainException.ofUserNotFound(Tokens.USERNAME));
+    }
+
+    @Test
+    void whenUpdateUserInactv_thenUpdateUserInactvException() {
+        final UserUpdateDto updateDto = new UserUpdateDto(Tokens.USERNAME, null, Status.SUSPND);
+        final User originalUser = new User(Tokens.USERNAME, Tokens.EMAIL, Status.INACTV, Tokens.LDT, Tokens.LDT, Tokens.USERNAME_ADMIN);
+        when(userRepository.get(Tokens.USERNAME)).thenReturn(Optional.of(originalUser));
+
+        assertThatThrownBy(() -> userService.updateUser(Tokens.USERNAME_ADMIN, Tokens.USERNAME, updateDto, Tokens.LDT.plusHours(1)))
+                .isEqualTo(DomainException.ofUpdatingInactvUser(Tokens.USERNAME));
     }
 }

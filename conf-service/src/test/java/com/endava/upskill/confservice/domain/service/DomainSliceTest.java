@@ -9,9 +9,10 @@ import javax.validation.ConstraintViolationException;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.ThrowableAssert;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -23,13 +24,15 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.endava.upskill.confservice.application.ValidationConfig;
 import com.endava.upskill.confservice.domain.dao.UserRepository;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.entity.User;
 import com.endava.upskill.confservice.domain.model.exception.DomainException;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
-import com.endava.upskill.confservice.domain.model.user.Status;
-import com.endava.upskill.confservice.domain.model.user.User;
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
+import com.endava.upskill.confservice.domain.model.update.UserUpdateDto;
 import com.endava.upskill.confservice.persistence.InMemUserRepository;
+import com.endava.upskill.confservice.provisioning.UserOnboarding;
 import com.endava.upskill.confservice.util.Tokens;
 
 import static com.endava.upskill.confservice.util.Tokens.*;
@@ -38,103 +41,182 @@ import static com.endava.upskill.confservice.util.Tokens.*;
 @ContextConfiguration(classes = {ValidationConfig.class, UserServiceImpl.class, InMemUserRepository.class})
 class DomainSliceTest {
 
-    private final User user = new User(USERNAME, EMAIL, Status.ACTIVE, LDT, LDT, USERNAME_ADMIN);
-
     @Autowired
     private UserRepository usersRepo;
 
     @Autowired
     private UserService userService;
 
-    @AfterEach
-    void tearDown() {
-        usersRepo.getAll().stream()
-                .map(User::getUsername)
-                .forEach(usersRepo::delete);
+    @RegisterExtension
+    private final UserOnboarding onboarding = UserOnboarding.ofRandomUser().usingRepository().build();
+
+    private final String username = onboarding.getUsername();
+
+    private final UserDto userDto = onboarding.getUserDto();
+
+    private final User user = onboarding.getUser();
+
+    @Nested
+    class CreateUserTests {
+        @Nested
+        class GivenUserToBeCreatedTest {
+
+            @RegisterExtension
+            private final UserOnboarding randomUser = UserOnboarding.ofRandomUser()
+                    .usingRepository().cleanupOnly().build();
+
+            @Test
+            void whenCreateUser_thenNoExceptionThrown() {
+                assertThatNoException().isThrownBy(() -> userService.createUser(USERNAME_ADMIN, randomUser.getUserDto(), LDT));
+
+                final Optional<User> userOptional = usersRepo.get(randomUser.getUsername());
+                assertThat(userOptional).contains(randomUser.getUser());
+            }
+        }
+
+        @ParameterizedTest
+        @MethodSource("validationFailureUser")
+        void whenCreateUserWithWrongProperties_thenThrowUserValidation(UserDto userDto, ExceptionResponse exceptionResponse) {
+            assertConstraintViolationException(() -> userService.createUser(Tokens.USERNAME_ADMIN, userDto, Tokens.LDT), exceptionResponse);
+        }
+
+        public static Stream<Arguments> validationFailureUser() {
+            return Stream.of(
+                    Arguments.of(new UserDto("123blalb", Tokens.EMAIL, Status.ACTIVE), ExceptionResponse.USER_VALIDATION_USERNAME),
+                    Arguments.of(new UserDto(null, Tokens.EMAIL, Status.ACTIVE), ExceptionResponse.USER_VALIDATION_USERNAME),
+                    Arguments.of(new UserDto(Tokens.USERNAME, null, Status.ACTIVE), ExceptionResponse.USER_VALIDATION_EMAIL),
+                    Arguments.of(new UserDto(Tokens.USERNAME, "thisNotAMail", Status.ACTIVE), ExceptionResponse.USER_VALIDATION_EMAIL),
+                    Arguments.of(new UserDto(Tokens.USERNAME, Tokens.EMAIL, null), ExceptionResponse.USER_VALIDATION_STATUS),
+                    Arguments.of(new UserDto(Tokens.USERNAME, Tokens.EMAIL, Status.INACTV), ExceptionResponse.USER_VALIDATION_STATUS)
+            );
+        }
+
+        @Test
+        void whenCreateUserWithExistentUsername_thenThrowUserAlreadyExistentException() {
+            assertThatThrownBy(() -> userService.createUser(USERNAME_ADMIN, userDto, LDT))
+                    .isEqualTo(DomainException.ofUserAlreadyExists(username));
+        }
     }
 
-    @Test
-    void whenGetAllUsers_thenReturnAllUsersFromRepository() {
-        List<User> userList = List.of(this.user);
-        userList.forEach(usersRepo::save);
+    @Nested
+    class GetUserTests {
 
-        List<UserDto> receivedList = userService.getAllUsers();
+        @Test
+        void whenGetExistentUser_thenReturnUserFromRepository() {
+            UserDetailedDto receivedUser = userService.getUser(username);
+            assertThat(receivedUser).isEqualTo(UserDetailedDto.fromUser(user));
+        }
 
-        assertThat(receivedList).containsExactly(UserDto.fromUser(user));
+        @Test
+        void whenGetAllUsers_thenReturnAllUsersFromRepository() {
+            List<UserDto> receivedList = userService.getAllUsers();
+            assertThat(receivedList).containsExactly(userDto);
+        }
+
+        @Test
+        void whenGetNonexistentUser_thenThrowUserNotFoundException() {
+            assertThatThrownBy(() -> userService.getUser(USERNAME_NOT_EXISTING))
+                    .isEqualTo(DomainException.ofUserNotFound(USERNAME_NOT_EXISTING));
+        }
+
+        @Test
+        void whenGetRequester_thenReturnOptionalFromRepository() {
+            Optional<User> actualUser = userService.getRequester(username);
+            assertThat(actualUser).contains(user);
+        }
     }
 
-    @Test
-    void whenGetExistentUser_thenReturnUserFromRepository() {
-        usersRepo.save(user);
+    @Nested
+    class UpdateUserTests {
+        @Test
+        void whenUpdateUser_thenNoExceptionThrown() {
+            final String updatedEmail = "another@email.com";
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(username, updatedEmail, null);
 
-        UserDetailedDto receivedUser = userService.getUser(USERNAME);
+            assertThatNoException().isThrownBy(() -> userService.updateUser(username, username, userUpdateDto, LDT.plusMinutes(10)));
 
-        assertThat(receivedUser).isEqualTo(UserDetailedDto.fromUser(user));
+            final Optional<User> userOptional = usersRepo.get(username);
+            assertThat(userOptional).contains(new User(username, updatedEmail, Status.SUSPND, LDT, LDT.plusMinutes(10), USERNAME));
+        }
+
+        @Test
+        void whenUpdateUserAdmin_thenThrowNotUpdatable() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(USERNAME_ADMIN, EMAIL, null);
+            assertConstraintViolationException(() -> userService.updateUser(USERNAME_ADMIN, USERNAME_ADMIN, userUpdateDto, LDT), ExceptionResponse.USER_NOT_UPDATABLE);
+        }
+
+        @Test
+        void whenUpdateUserWithNoProperties_thenThrowAtLeastOnePropertyMustBeUpdated() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(username, null, null);
+            assertConstraintViolationException(() -> userService.updateUser(USERNAME_ADMIN, username, userUpdateDto, LDT),
+                    ExceptionResponse.USER_UPDATE_NO_PROPERTIES);
+        }
+
+        @Test
+        void whenUpdateUserWithInvalidEmail_thenThrowUserValidationEmail() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(username, INVALID_EMAIL, null);
+            assertConstraintViolationException(() -> userService.updateUser(USERNAME_ADMIN, username, userUpdateDto, LDT),
+                    ExceptionResponse.USER_VALIDATION_EMAIL);
+        }
+
+        @Test
+        void whenUpdateUserWithNoUsername_thenThrowAtLeastOnePropertyMustBeUpdated() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(null, EMAIL, null);
+            assertConstraintViolationException(() -> userService.updateUser(USERNAME_ADMIN, username, userUpdateDto, LDT),
+                    ExceptionResponse.USERNAME_DIFFERENT);
+        }
+
+        @Test
+        void whenUpdateUserDifferentFromRequest_thenThrowUsernameDifferent() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(USERNAME_NOT_EXISTING, EMAIL, null);
+            assertConstraintViolationException(() -> userService.updateUser(USERNAME_ADMIN, username, userUpdateDto, LDT),
+                    ExceptionResponse.USERNAME_DIFFERENT);
+        }
+
+        @Test
+        void whenUpdateUserMultipleExceptions_thenThrowThePriorityOne() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(username, INVALID_EMAIL, null);
+            assertConstraintViolationException(() -> userService.updateUser(USERNAME_ADMIN, USERNAME_NOT_EXISTING, userUpdateDto, LDT),
+                    ExceptionResponse.USERNAME_DIFFERENT);
+        }
+
+        @Test
+        void whenUpdateUserThatDoesNotExist_thenThrowUserNotFound() {
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(USERNAME_NOT_EXISTING, null, Status.SUSPND);
+            assertThatThrownBy(() -> userService.updateUser(USERNAME_ADMIN, USERNAME_NOT_EXISTING, userUpdateDto, LDT))
+                    .isEqualTo(DomainException.ofUserNotFound(USERNAME_NOT_EXISTING));
+
+        }
+
+        @Test
+        void whenUpdateUserThatIsInactv_thenThrowUserInactv() {
+            usersRepo.update(new User(username, EMAIL, Status.INACTV,LDT, LDT, USERNAME_ADMIN));
+            final UserUpdateDto userUpdateDto = new UserUpdateDto(username, null, Status.SUSPND);
+            assertThatThrownBy(() -> userService.updateUser(USERNAME_ADMIN, username, userUpdateDto, LDT))
+                    .isEqualTo(DomainException.ofUpdatingInactvUser(username));
+        }
     }
 
-    @Test
-    void whenGetNonexistentUser_thenThrowUserNotFoundException() {
-        assertThatThrownBy(() -> userService.getUser(USERNAME))
-                .isEqualTo(DomainException.ofUserNotFound(USERNAME));
-    }
+    @Nested
+    class DeleteUserTests {
 
-    @Test
-    void whenDeleteExistentUser_thenNoExceptionThrown() {
-        usersRepo.save(user);
-        assertThatNoException().isThrownBy(() -> userService.deleteUser(USERNAME, USERNAME_ADMIN));
-    }
+        @Test
+        void whenDeleteNonExistingUser_thenThrowUserNotFoundException() {
+            assertThatThrownBy(() -> userService.deleteUser(USERNAME_ADMIN, USERNAME_NOT_EXISTING))
+                    .isEqualTo(DomainException.ofUserNotFound(USERNAME_NOT_EXISTING));
+        }
 
-    @Test
-    void whenDeleteNonExistingUser_thenThrowUserNotFoundException() {
-        assertThatThrownBy(() -> userService.deleteUser(USERNAME, USERNAME_ADMIN))
-                .isEqualTo(DomainException.ofUserNotFound(USERNAME));
-    }
+        @Test
+        void whenDeleteAdminUser_thenThrowDeleteUserForbidden() {
+            assertConstraintViolationException(() -> userService.deleteUser(USERNAME_ADMIN, USERNAME_ADMIN),
+                    ExceptionResponse.USER_NOT_REMOVABLE);
+        }
 
-    @Test
-    void whenDeleteAdminUser_thenThrowDeleteUserForbidden() {
-        assertConstraintViolationException(() -> userService.deleteUser(USERNAME_ADMIN, USERNAME_ADMIN), ExceptionResponse.USER_NOT_REMOVABLE);
-    }
+        @Test
+        void whenDeleteExistentUser_thenNoExceptionThrown() {
+            assertThatNoException().isThrownBy(() -> userService.deleteUser(USERNAME_ADMIN, username));
+        }
 
-    @ParameterizedTest
-    @MethodSource("validationFailureUser")
-    void whenCreateUserWithMissingPropertiesUser_thenThrowInactvUserCreation(UserDto userDto, ExceptionResponse exceptionResponse) {
-        assertConstraintViolationException(() -> userService.createUser(userDto, Tokens.LDT, Tokens.USERNAME_ADMIN), exceptionResponse);
-    }
-
-    public static Stream<Arguments> validationFailureUser() {
-        return Stream.of(
-                Arguments.of(new UserDto("123blalb", Tokens.EMAIL, Status.ACTIVE), ExceptionResponse.USER_VALIDATION_USERNAME),
-                Arguments.of(new UserDto(null, Tokens.EMAIL, Status.ACTIVE), ExceptionResponse.USER_VALIDATION_USERNAME),
-                Arguments.of(new UserDto(Tokens.USERNAME, null, Status.ACTIVE), ExceptionResponse.USER_VALIDATION_EMAIL),
-                Arguments.of(new UserDto(Tokens.USERNAME, "thisNotAMail", Status.ACTIVE), ExceptionResponse.USER_VALIDATION_EMAIL),
-                Arguments.of(new UserDto(Tokens.USERNAME, Tokens.EMAIL, null), ExceptionResponse.USER_VALIDATION_STATUS),
-                Arguments.of(new UserDto(Tokens.USERNAME, Tokens.EMAIL, Status.INACTV), ExceptionResponse.USER_VALIDATION_STATUS)
-        );
-    }
-
-    @Test
-    void whenCreateUser_thenNoExceptionThrown() {
-        assertThatNoException().isThrownBy(() -> userService.createUser(UserDto.fromUser(user), LDT, USERNAME_ADMIN));
-
-        final Optional<User> userOptional = usersRepo.get(USERNAME);
-        assertThat(userOptional).contains(this.user);
-    }
-
-    @Test
-    void whenCreateUserWithExistentUsername_thenThrowUserAlreadyExistentException() {
-        usersRepo.save(user);
-
-        assertThatThrownBy(() -> userService.createUser(UserDto.fromUser(user), LDT, USERNAME_ADMIN))
-                .isEqualTo(DomainException.ofUserAlreadyExists(user.getUsername()));
-    }
-
-    @Test
-    void whenGetRequester_thenReturnOptionalFromRepository() {
-        usersRepo.save(user);
-
-        Optional<User> actualUser = userService.getRequester(USERNAME);
-
-        assertThat(actualUser).contains(user);
     }
 
     private void assertConstraintViolationException(ThrowableAssert.ThrowingCallable throwingCallable, ExceptionResponse exceptionResponse) {

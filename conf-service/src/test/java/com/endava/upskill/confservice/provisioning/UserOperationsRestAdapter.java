@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
 import com.endava.upskill.confservice.util.Tokens;
 
 import static com.endava.upskill.confservice.util.Endpoint.CREATE_USER;

@@ -3,7 +3,7 @@ package com.endava.upskill.confservice.domain.dao;
 import java.util.List;
 import java.util.Optional;
 
-import com.endava.upskill.confservice.domain.model.user.User;
+import com.endava.upskill.confservice.domain.model.entity.User;
 
 public interface UserRepository {
 
@@ -14,4 +14,6 @@ public interface UserRepository {
     boolean save(User newUser);
 
     boolean delete(String username);
+
+    boolean update(User updatingUser);
 }

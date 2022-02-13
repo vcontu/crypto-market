@@ -1,6 +1,9 @@
-package com.endava.upskill.confservice.domain.model.user;
+package com.endava.upskill.confservice.domain.model.get;
 
 import java.time.LocalDateTime;
+
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.entity.User;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

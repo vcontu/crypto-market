@@ -34,4 +34,8 @@ public class DomainException extends RuntimeException {
     public static DomainException ofUserAlreadyExists(String username) {
         return new DomainException(ExceptionResponse.USERNAME_EXISTS, username);
     }
+
+    public static DomainException ofUpdatingInactvUser(String username) {
+        return new DomainException(ExceptionResponse.UPDATE_INACTV_USER, username);
+    }
 }

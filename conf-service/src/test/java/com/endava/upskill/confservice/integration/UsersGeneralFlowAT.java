@@ -3,9 +3,7 @@ package com.endava.upskill.confservice.integration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import static javax.servlet.http.HttpServletResponse.SC_CREATED;
-import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -18,14 +16,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasItem;
 
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.Status;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
+import com.endava.upskill.confservice.domain.model.update.UserUpdateDto;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
 import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 
 import static com.endava.upskill.confservice.util.Endpoint.CREATE_USER;
+import static com.endava.upskill.confservice.util.Endpoint.UPDATE_USER;
 
 import io.restassured.path.json.JsonPath;
 
@@ -103,6 +104,21 @@ public class UsersGeneralFlowAT extends ResponseValidationSpecs {
 
     @Test
     @Order(4)
+    @DisplayName("Update User: Success")
+    void updateUser_accepted() {
+        given()
+                .headers(Tokens.REQUESTER_ADMIN)
+                .spec(buildRequestSpec(new UserUpdateDto(username, null, Status.INACTV)))
+
+                .when()
+                .patch(UPDATE_USER.getPath(), username)
+
+                .then()
+                .statusCode(SC_ACCEPTED);
+    }
+
+    @Test
+    @Order(5)
     @DisplayName("Delete User: Success")
     void deleteUser_successful() {
         given()

@@ -8,8 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.endava.upskill.confservice.domain.model.user.UserDetailedDto;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.get.UserDetailedDto;
+import com.endava.upskill.confservice.domain.model.update.UserUpdateDto;
 import com.endava.upskill.confservice.domain.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,17 @@ public class UserController {
             @AdminOnly
                     String requesterUsername) {
         log.info("Creating user: {}", user);
-        userService.createUser(user, LocalDateTime.now(clock), requesterUsername);
+        userService.createUser(requesterUsername, user, LocalDateTime.now(clock));
+    }
+
+    @PatchMapping("/{username}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateUser(
+            @RequestBody UserUpdateDto user,
+            @PathVariable String username,
+            @RequestHeader(REQUESTER_HEADER) String requesterUsername) {
+        log.info("Creating user: {}", user);
+        userService.updateUser(requesterUsername, username, user, LocalDateTime.now(clock));
     }
 
     @DeleteMapping("/{username}")
@@ -64,6 +75,6 @@ public class UserController {
             @AdminOnly
                     String requesterUsername) {
         log.info("Deleting user: {}", username);
-        userService.deleteUser(username, requesterUsername);
+        userService.deleteUser(requesterUsername, username);
     }
 }

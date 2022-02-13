@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 import com.endava.upskill.confservice.domain.dao.UserRepository;
-import com.endava.upskill.confservice.domain.model.user.User;
+import com.endava.upskill.confservice.domain.model.entity.User;
 
 @Component
 public class InMemUserRepository implements UserRepository {
@@ -31,6 +31,15 @@ public class InMemUserRepository implements UserRepository {
             return false;
         }
         userMap.put(user.getUsername(), user);
+        return true;
+    }
+
+    @Override
+    public synchronized boolean update(User updatingUser) {
+        if (!userMap.containsKey(updatingUser.getUsername())) {
+            return false;
+        }
+        userMap.put(updatingUser.getUsername(), updatingUser);
         return true;
     }
 

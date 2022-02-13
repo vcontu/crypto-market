@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.endava.upskill.confservice.domain.dao.UserRepository;
-import com.endava.upskill.confservice.domain.model.user.User;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
+import com.endava.upskill.confservice.domain.model.create.UserDto;
+import com.endava.upskill.confservice.domain.model.entity.User;
 
 public class UsersOperationsRepositoryAdapter implements UserOperations {
 

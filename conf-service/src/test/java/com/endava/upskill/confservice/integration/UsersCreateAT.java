@@ -8,16 +8,16 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import com.endava.upskill.confservice.domain.model.create.UserDto;
 import com.endava.upskill.confservice.domain.model.exception.ExceptionResponse;
-import com.endava.upskill.confservice.domain.model.user.UserDto;
 import com.endava.upskill.confservice.provisioning.UserOnboarding;
 import com.endava.upskill.confservice.util.Endpoint;
 import com.endava.upskill.confservice.util.ResponseValidationSpecs;
 import com.endava.upskill.confservice.util.Tokens;
 
+import static com.endava.upskill.confservice.domain.model.entity.Status.ACTIVE;
+import static com.endava.upskill.confservice.domain.model.entity.Status.INACTV;
 import static com.endava.upskill.confservice.domain.model.exception.ExceptionResponse.*;
-import static com.endava.upskill.confservice.domain.model.user.Status.ACTIVE;
-import static com.endava.upskill.confservice.domain.model.user.Status.INACTV;
 import static com.endava.upskill.confservice.provisioning.UserOnboarding.randomUsername;
 
 import io.restassured.http.ContentType;
